@@ -16,7 +16,21 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
+
+## Login con Firebase
+
+El proyecto incluye una ventana de login integrada con **Firebase Authentication** (email/contraseña).
+
+- **Login:** [http://localhost:3000/login](http://localhost:3000/login)
+- **Registro:** [http://localhost:3000/login/registro](http://localhost:3000/login/registro)
+
+### Configuración
+
+1. Crea un proyecto en [Firebase Console](https://console.firebase.google.com/).
+2. Activa **Authentication** → **Sign-in method** → **Correo electrónico/contraseña**.
+3. Copia `.env.local.example` a `.env.local` y rellena las variables con los datos de tu proyecto (Configuración del proyecto → Tus apps → SDK).
+4. Reinicia el servidor de desarrollo (`npm run dev`).
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

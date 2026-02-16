@@ -1,0 +1,118 @@
+[
+  {
+    "title": "Inicio",
+    "enabled": true,
+    "icon": "shopping-cart-outline",
+    "link": "/home",
+    "home": true
+  },
+  {
+    "title": "IoT Dashboard",
+    "enabled": true,
+    "icon": "home-outline",
+    "link": "/home",
+    "permission": ["view", "dashboard"]
+  },
+  {
+    "title": "FEATURES",
+    "enabled": true,
+    "group": true,
+    "permission": ["view", "features"]
+  },
+  {
+    "title": "Sistema",
+    "enabled": true,
+    "icon": "layout-outline",
+    "permission": ["view", "system"],
+    "children": [
+      {
+        "title": "Usuarios",
+        "link": "/system/users",
+        "permission": ["view", "user"]
+      },
+      {
+        "title": "Roles",
+        "link": "/system/roles",
+        "permission": ["view", "role"]
+      }
+    ]
+  },
+  {
+    "title": "Infinite List",
+    "enabled": true,
+    "icon": "grid-outline",
+    "link": "#"
+  },
+  {
+    "title": "Accordion",
+    "enabled": true,
+    "icon": "square-outline",
+    "link": "#"
+  },
+  {
+    "title": "Tabs",
+    "enabled": true,
+    "icon": "text-outline",
+    "link": "#"
+  },
+  {
+    "title": "Maestros",
+    "enabled": true,
+    "icon": "edit-outline",
+    "children": []
+  },
+  {
+    "title": "UI Features",
+    "enabled": true,
+    "icon": "grid-outline",
+    "children": []
+  },
+  {
+    "title": "Modal & Overlays",
+    "enabled": true,
+    "icon": "square-outline",
+    "children": []
+  },
+  {
+    "title": "Extra Components",
+    "enabled": true,
+    "icon": "message-outline",
+    "link": "#"
+  },
+  {
+    "title": "Maps",
+    "enabled": true,
+    "icon": "map-outline",
+    "link": "#"
+  },
+  {
+    "title": "Charts",
+    "enabled": true,
+    "icon": "chart-outline",
+    "link": "#"
+  },
+  {
+    "title": "Editors",
+    "enabled": true,
+    "icon": "text-outline",
+    "link": "#"
+  },
+  {
+    "title": "Tables & Data",
+    "enabled": true,
+    "icon": "table-outline",
+    "link": "/home"
+  },
+  {
+    "title": "Miscellaneous",
+    "enabled": true,
+    "icon": "wrench-outline",
+    "link": "#"
+  },
+  {
+    "title": "Auth",
+    "enabled": true,
+    "icon": "lock-outline",
+    "link": "/account"
+  }
+]
