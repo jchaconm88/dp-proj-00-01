@@ -24,3 +24,29 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Loader tipo Pace.js: barra en la parte superior */
+.pace-loader {
+  background: rgba(0, 0, 0, 0.06);
+}
+.dark .pace-loader {
+  background: rgba(255, 255, 255, 0.06);
+}
+.pace-bar {
+  background: linear-gradient(
+    90deg,
+    #2563eb 0%,
+    #3b82f6 50%,
+    #60a5fa 100%
+  );
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+}
+.dark .pace-bar {
+  background: linear-gradient(
+    90deg,
+    #1d4ed8 0%,
+    #2563eb 50%,
+    #3b82f6 100%
+  );
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
