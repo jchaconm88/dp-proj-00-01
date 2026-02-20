@@ -7,6 +7,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Icon } from "./icons";
+import { useTheme } from "@/contexts/ThemeContext";
 
 /** Ítem del menú en formato plano (menu.json) */
 export interface MenuItemRaw {
@@ -66,8 +67,8 @@ const HEADER_HEIGHT = 56;
 export default function DashboardShell({ children, menu, appTitle = "ngx-admin" }: DashboardShellProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme() ?? { theme: "light" as const, setTheme: () => {} };
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [userName, setUserName] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set(["Sistema"]));
@@ -80,13 +81,6 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
       return next;
     });
   };
-
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      const isDark = document.documentElement.classList.contains("dark");
-      setTheme(isDark ? "dark" : "light");
-    }
-  }, []);
 
   useEffect(() => {
     if (!auth) {
@@ -129,14 +123,6 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
     router.replace("/");
   };
 
-  const toggleTheme = () => {
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    if (typeof document !== "undefined") {
-      document.documentElement.classList.toggle("dark", next === "dark");
-    }
-  };
-
   const sections = menuToSections(menu);
 
   const iconName = (name?: string): Parameters<typeof Icon>[0]["name"] => {
@@ -171,13 +157,15 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
           <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
             {appTitle}
           </span>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+          <select
+            value={theme}
+            onChange={(e) => setTheme(e.target.value as "light" | "dark")}
+            className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+            aria-label="Tema"
           >
-            {theme === "light" ? "Light" : "Dark"}
-          </button>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
         </div>
         <div className="flex items-center gap-2">
           <button
