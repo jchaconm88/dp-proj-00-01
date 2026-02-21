@@ -62,7 +62,10 @@ function DpTableInner<T extends DpTableRow>(
   const [globalFilter, setGlobalFilter] = useState("");
   const [selection, setSelection] = useState<T[]>([]);
   const selectionRef = useRef(selection);
-  selectionRef.current = selection;
+
+  useEffect(() => {
+    selectionRef.current = selection;
+  }, [selection]);
 
   const columns = useMemo(
     () =>
