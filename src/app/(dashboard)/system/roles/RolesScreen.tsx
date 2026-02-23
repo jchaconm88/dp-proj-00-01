@@ -2,43 +2,41 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import * as userService from "@/services/userService";
-import type { UserRecord } from "@/services/userService";
+import * as roleService from "@/services/roleService";
+import type { RoleRecord } from "@/services/roleService";
 import { DpContent, DpContentHeader } from "@/components/DpContent";
 import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
 
-export type { UserRecord };
+export type { RoleRecord };
 
 const TABLE_DEF: DpTableDefColumn[] = [
-  { header: "Nombre", column: "displayName", order: 1, display: true, filter: true },
-  { header: "Correo", column: "email", order: 2, display: true, filter: true },
-  { header: "Roles", column: "role", order: 3, display: true, filter: true },
+  { header: "Nombre", column: "name", order: 1, display: true, filter: true },
+  { header: "Descripción", column: "description", order: 2, display: true, filter: true },
 ];
 
-export interface UsersScreenProps {
-  /** Cuando cambia, se vuelve a cargar la lista (ej. tras guardar en un diálogo) */
+export interface RolesScreenProps {
   refreshTrigger?: number;
   onRefresh?: () => void;
 }
 
-export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenProps) {
+export default function RolesScreen({ refreshTrigger, onRefresh }: RolesScreenProps) {
   const router = useRouter();
-  const tableRef = useRef<DpTableRef<UserRecord>>(null);
+  const tableRef = useRef<DpTableRef<RoleRecord>>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [filterValue, setFilterValue] = useState("");
 
-  const fetchUsers = async () => {
+  const fetchRoles = async () => {
     setLoading(true);
     setError(null);
     tableRef.current?.setLoading(true);
     try {
-      const list = await userService.list();
+      const list = await roleService.list();
       tableRef.current?.setDatasource(list);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cargar usuarios.");
+      setError(err instanceof Error ? err.message : "Error al cargar roles.");
       tableRef.current?.clearDatasource();
     } finally {
       setLoading(false);
@@ -47,20 +45,20 @@ export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenPr
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchRoles();
   }, [refreshTrigger]);
 
   const handleRefresh = () => {
-    fetchUsers();
+    fetchRoles();
     onRefresh?.();
   };
 
   const openAdd = () => {
-    router.push("/system/users/add");
+    router.push("/system/roles/add");
   };
 
-  const openEdit = (user: UserRecord) => {
-    router.push(`/system/users/edit/${user.id}`);
+  const openEdit = (role: RoleRecord) => {
+    router.push(`/system/roles/edit/${role.id}`);
   };
 
   const deleteSelected = async () => {
@@ -68,9 +66,9 @@ export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenPr
     if (selected.length === 0) return;
     setSaving(true);
     try {
-      await userService.removeMany(selected);
+      await roleService.removeMany(selected);
       tableRef.current?.clearSelectedRows();
-      await fetchUsers();
+      await fetchRoles();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al eliminar.");
     } finally {
@@ -84,7 +82,7 @@ export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenPr
   };
 
   return (
-    <DpContent title="USUARIOS">
+    <DpContent title="ROLES">
       <DpContentHeader
         filterValue={filterValue}
         onFilter={handleFilter}
@@ -93,7 +91,7 @@ export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenPr
         onDelete={deleteSelected}
         deleteDisabled={selectedCount === 0 || saving}
         loading={loading}
-        filterPlaceholder="Filtrar por nombre, correo o rol..."
+        filterPlaceholder="Filtrar por nombre o descripción..."
       />
 
       {error && (
@@ -102,16 +100,16 @@ export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenPr
         </div>
       )}
 
-      <DpTable<UserRecord>
+      <DpTable<RoleRecord>
         ref={tableRef}
         tableDef={TABLE_DEF}
-        linkColumn="displayName"
+        linkColumn="name"
         onDetail={openEdit}
         onEdit={openEdit}
         onSelectionChange={(rows) => setSelectedCount(rows.length)}
         showFilterInHeader={false}
-        filterPlaceholder="Filtrar por nombre, correo o rol..."
-        emptyMessage='No hay usuarios en la colección "users".'
+        filterPlaceholder="Filtrar por nombre o descripción..."
+        emptyMessage='No hay roles en la colección "roles".'
         emptyFilterMessage="No hay resultados para el filtro."
       />
     </DpContent>

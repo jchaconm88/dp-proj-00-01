@@ -2,10 +2,10 @@
 
 import { useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import UsersScreen from "./UsersScreen";
-import SetUserDialog from "./SetUserDialog";
+import RolesScreen from "./RolesScreen";
+import SetRoleDialog from "./SetRoleDialog";
 
-export default function SystemUsersLayout({
+export default function SystemRolesLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -13,10 +13,10 @@ export default function SystemUsersLayout({
   const pathname = usePathname();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const showAdd = pathname === "/system/users/add";
-  const editMatch = pathname.match(/^\/system\/users\/edit\/([^/]+)$/);
-  const editUserId = editMatch ? editMatch[1] : null;
-  const showDialog = showAdd || !!editUserId;
+  const showAdd = pathname === "/system/roles/add";
+  const editMatch = pathname.match(/^\/system\/roles\/edit\/([^/]+)$/);
+  const editRoleId = editMatch ? editMatch[1] : null;
+  const showDialog = showAdd || !!editRoleId;
 
   const onDialogSuccess = useCallback(() => {
     setRefreshTrigger((k) => k + 1);
@@ -24,10 +24,10 @@ export default function SystemUsersLayout({
 
   return (
     <>
-      <UsersScreen refreshTrigger={refreshTrigger} />
-      <SetUserDialog
+      <RolesScreen refreshTrigger={refreshTrigger} />
+      <SetRoleDialog
         visible={showDialog}
-        userId={editUserId}
+        roleId={editRoleId}
         onSuccess={onDialogSuccess}
       />
       {children}

@@ -5,23 +5,19 @@ import { useRouter } from "next/navigation";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import * as userService from "@/services/userService";
 
-export interface EditUserDialogProps {
+export interface SetUserDialogProps {
+  /** Si es true, se muestra el diálogo. */
   visible: boolean;
+  /** Si viene un id, se edita; si es null, se crea. */
   userId: string | null;
   onSuccess?: () => void;
 }
 
-interface UserData {
-  displayName: string | null;
-  email: string;
-  role: string[];
-}
-
-export default function EditUserDialog({ visible, userId, onSuccess }: EditUserDialogProps) {
+export default function SetUserDialog({ visible, userId, onSuccess }: SetUserDialogProps) {
   const router = useRouter();
+  const isEdit = !!userId;
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
@@ -38,16 +34,23 @@ export default function EditUserDialog({ visible, userId, onSuccess }: EditUserD
   };
 
   useEffect(() => {
-    if (!visible || !userId || !db) return;
-    setLoading(true);
+    if (!visible) return;
     setError(null);
-    getDoc(doc(db, "users", userId))
-      .then((snap) => {
-        if (!snap.exists()) {
+    if (!userId) {
+      setDisplayName("");
+      setEmail("");
+      setRole("");
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    userService
+      .get(userId)
+      .then((data) => {
+        if (!data) {
           setError("Usuario no encontrado.");
           return;
         }
-        const data = snap.data() as UserData;
         setDisplayName(data.displayName ?? "");
         setEmail(data.email ?? "");
         setRole(Array.isArray(data.role) ? data.role.join(", ") : "");
@@ -61,7 +64,6 @@ export default function EditUserDialog({ visible, userId, onSuccess }: EditUserD
   }, [visible, userId]);
 
   const save = async () => {
-    if (!db || !userId) return;
     const roles = role
       .split(",")
       .map((r) => r.trim())
@@ -69,11 +71,19 @@ export default function EditUserDialog({ visible, userId, onSuccess }: EditUserD
     setSaving(true);
     setError(null);
     try {
-      await updateDoc(doc(db, "users", userId), {
-        displayName: displayName.trim() || null,
-        email: email.trim(),
-        role: roles,
-      });
+      if (userId) {
+        await userService.edit(userId, {
+          displayName: displayName.trim() || null,
+          email: email.trim(),
+          role: roles,
+        });
+      } else {
+        await userService.add({
+          displayName: displayName.trim() || null,
+          email: email.trim(),
+          role: roles,
+        });
+      }
       onSuccess?.();
       hide();
     } catch (err) {
@@ -85,7 +95,7 @@ export default function EditUserDialog({ visible, userId, onSuccess }: EditUserD
 
   return (
     <Dialog
-      header="Editar usuario"
+      header={isEdit ? "Editar usuario" : "Agregar usuario"}
       visible={visible}
       style={{ width: "28rem" }}
       onHide={onHide}
@@ -104,11 +114,11 @@ export default function EditUserDialog({ visible, userId, onSuccess }: EditUserD
             </div>
           )}
           <div className="flex flex-col gap-2">
-            <label htmlFor="edit-displayName" className="font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="setuser-displayName" className="font-medium text-zinc-700 dark:text-zinc-300">
               Nombre
             </label>
             <InputText
-              id="edit-displayName"
+              id="setuser-displayName"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Nombre para mostrar"
@@ -116,11 +126,11 @@ export default function EditUserDialog({ visible, userId, onSuccess }: EditUserD
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="edit-email" className="font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="setuser-email" className="font-medium text-zinc-700 dark:text-zinc-300">
               Correo
             </label>
             <InputText
-              id="edit-email"
+              id="setuser-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -129,11 +139,11 @@ export default function EditUserDialog({ visible, userId, onSuccess }: EditUserD
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="edit-role" className="font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="setuser-role" className="font-medium text-zinc-700 dark:text-zinc-300">
               Roles (separados por coma)
             </label>
             <InputText
-              id="edit-role"
+              id="setuser-role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
               placeholder="admin, editor"
