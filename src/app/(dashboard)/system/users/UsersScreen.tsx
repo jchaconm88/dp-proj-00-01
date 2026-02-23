@@ -9,7 +9,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Icon } from "@/components/icons";
+import { DpContent, DpContentHeader } from "@/components/DpContent";
 import { DpTable, type DpTableRef, type DpTableDefColumn, type DpTableRow } from "@/components/DpTable";
 
 export interface UserRecord extends DpTableRow {
@@ -37,6 +37,7 @@ export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenPr
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
+  const [filterValue, setFilterValue] = useState("");
 
   const fetchUsers = async () => {
     if (!db) {
@@ -103,38 +104,23 @@ export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenPr
     }
   };
 
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold uppercase tracking-wide text-zinc-900 dark:text-zinc-50">
-        Usuarios
-      </h1>
+  const handleFilter = (value: string) => {
+    setFilterValue(value);
+    tableRef.current?.filter(value);
+  };
 
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={loading}
-          className="rounded-full border border-zinc-300 p-2 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          aria-label="Actualizar"
-        >
-          <Icon name="refresh" className="h-5 w-5" />
-        </button>
-        <button
-          type="button"
-          onClick={deleteSelected}
-          disabled={selectedCount === 0 || saving}
-          className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-        >
-          Eliminar
-        </button>
-        <button
-          type="button"
-          onClick={openAdd}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          Agregar
-        </button>
-      </div>
+  return (
+    <DpContent title="USUARIOS">
+      <DpContentHeader
+        filterValue={filterValue}
+        onFilter={handleFilter}
+        onLoad={handleRefresh}
+        onCreate={openAdd}
+        onDelete={deleteSelected}
+        deleteDisabled={selectedCount === 0 || saving}
+        loading={loading}
+        filterPlaceholder="Filtrar por nombre, correo o rol..."
+      />
 
       {error && (
         <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
@@ -149,10 +135,11 @@ export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenPr
         onDetail={openEdit}
         onEdit={openEdit}
         onSelectionChange={(rows) => setSelectedCount(rows.length)}
+        showFilterInHeader={false}
         filterPlaceholder="Filtrar por nombre, correo o rol..."
         emptyMessage='No hay usuarios en la colección "users".'
         emptyFilterMessage="No hay resultados para el filtro."
       />
-    </div>
+    </DpContent>
   );
 }

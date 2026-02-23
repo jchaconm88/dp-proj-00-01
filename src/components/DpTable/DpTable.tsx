@@ -27,6 +27,8 @@ export interface DpTableProps<T extends DpTableRow> {
   onEdit?: (row: T) => void;
   /** Placeholder del campo de filtro (si hay columnas con filter: true) */
   filterPlaceholder?: string;
+  /** Si false, no se muestra el input de filtro en el header de la tabla (usar DpContentHeader) */
+  showFilterInHeader?: boolean;
   /** Opciones de "items por página" */
   pageSizes?: number[];
   /** Mensaje cuando no hay datos */
@@ -50,6 +52,7 @@ function DpTableInner<T extends DpTableRow>(
     onDetail,
     onEdit,
     filterPlaceholder = "Filtrar…",
+    showFilterInHeader = true,
     pageSizes = DEFAULT_PAGE_SIZES,
     emptyMessage = "No hay datos.",
     emptyFilterMessage = "No hay resultados para el filtro.",
@@ -106,6 +109,10 @@ function DpTableInner<T extends DpTableRow>(
     setSelection([]);
   }, []);
 
+  const filter = useCallback((value: string) => {
+    setGlobalFilter(value);
+  }, []);
+
   useImperativeHandle(
     ref,
     () => ({
@@ -114,8 +121,9 @@ function DpTableInner<T extends DpTableRow>(
       setLoading,
       getSelectedRows,
       clearSelectedRows,
+      filter,
     }),
-    [setDatasource, clearDatasource, setLoading, getSelectedRows, clearSelectedRows]
+    [setDatasource, clearDatasource, setLoading, getSelectedRows, clearSelectedRows, filter]
   );
 
   useEffect(() => {
@@ -128,7 +136,7 @@ function DpTableInner<T extends DpTableRow>(
   );
 
   const header = useMemo(() => {
-    if (filterColumns.length === 0) return null;
+    if (filterColumns.length === 0 || !showFilterInHeader) return null;
     return (
       <div className="flex flex-wrap items-center justify-end gap-2">
         <span className="p-input-icon-left">
@@ -143,7 +151,7 @@ function DpTableInner<T extends DpTableRow>(
         </span>
       </div>
     );
-  }, [globalFilter, filterPlaceholder, filterColumns.length]);
+  }, [globalFilter, filterPlaceholder, filterColumns.length, showFilterInHeader]);
 
   const bodyLink = useCallback(
     (row: T, col: DpTableDefColumn) => {

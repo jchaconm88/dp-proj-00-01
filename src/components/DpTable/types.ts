@@ -35,4 +35,6 @@ export interface DpTableRef<T extends DpTableRow> {
   getSelectedRows(): T[];
   /** Limpia la selección */
   clearSelectedRows(): void;
+  /** Aplica el filtro global (ej. desde DpContentHeader) */
+  filter(value: string): void;
 }

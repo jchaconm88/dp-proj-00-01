@@ -8,6 +8,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Icon } from "./icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Dropdown } from "primereact/dropdown";
 
 /** Ítem del menú en formato plano (menu.json) */
 export interface MenuItemRaw {
@@ -72,6 +73,11 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
   const [userName, setUserName] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set(["Sistema"]));
+
+  const themes = [
+    { name: 'Claro', code: 'light' },
+    { name: 'Oscuro', code: 'dark' }
+];
 
   const toggleExpanded = (label: string) => {
     setExpandedKeys((prev) => {
@@ -145,7 +151,7 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
         className="z-50 flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-4 dark:border-navy-600 dark:bg-navy-700"
         style={{ height: HEADER_HEIGHT }}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center w-64 gap-4">
           <button
             type="button"
             onClick={() => setSidebarOpen((o) => !o)}
@@ -157,15 +163,6 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
           <span className="text-lg font-semibold text-zinc-900 dark:text-navy-100">
             {appTitle}
           </span>
-          <select
-            value={theme}
-            onChange={(e) => setTheme(e.target.value as "light" | "dark")}
-            className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-navy-600 dark:bg-navy-600 dark:text-navy-200"
-            aria-label="Tema"
-          >
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -190,6 +187,14 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
             <Icon name="bell" />
           </button>
           <div className="ml-2 flex items-center gap-3">
+          <Dropdown
+            value={theme}
+            onChange={(e) => setTheme(e.value ?? "light")}
+            options={themes}
+            optionLabel="name"
+            optionValue="code"
+            placeholder="Tema"
+          />
             <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-navy-600 dark:bg-navy-600">
               <Icon name="user" className="h-5 w-5 text-zinc-500 dark:text-navy-300" />
               <span className="text-sm font-medium text-zinc-800 dark:text-navy-200">
