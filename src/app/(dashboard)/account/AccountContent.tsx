@@ -38,9 +38,10 @@ export default function AccountContent() {
         setLoading(false);
         return;
       }
+      const firestore = db;
 
       try {
-        const usersRef = collection(db, "users");
+        const usersRef = collection(firestore, "users");
         const q = query(usersRef, where("email", "==", user.email));
         const snapshot = await getDocs(q);
 

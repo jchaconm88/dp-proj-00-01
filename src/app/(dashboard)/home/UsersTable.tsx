@@ -25,12 +25,13 @@ export default function UsersTable() {
       setLoading(false);
       return;
     }
+    const firestore = db;
 
     const fetchUsers = async () => {
       setLoading(true);
       setError(null);
       try {
-        const usersRef = collection(db, "users");
+        const usersRef = collection(firestore, "users");
         const snapshot = await getDocs(usersRef);
         const list: UserRow[] = snapshot.docs.map((doc) => {
           const data = doc.data();
@@ -133,7 +134,7 @@ export default function UsersTable() {
           <select
             className="rounded border border-zinc-300 bg-white px-2 py-1 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200"
             value={PAGE_SIZE}
-            readOnly
+            aria-label="Items por página"
           >
             <option value={5}>5</option>
           </select>

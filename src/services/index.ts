@@ -1,3 +1,3 @@
-export * from "./userService";
-export * from "./roleService";
-export * from "./moduleService";
+export * as userService from "./userService";
+export * as roleService from "./roleService";
+export * as moduleService from "./moduleService";

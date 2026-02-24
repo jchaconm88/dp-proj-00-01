@@ -52,7 +52,7 @@ export async function get(id: string): Promise<ModuleRecord | null> {
             return { code: p, label: p, description: "" };
           }
           if (p != null && typeof p === "object") {
-            const o = p as Record<string, unknown>;
+            const o = p as unknown as Record<string, unknown>;
             return {
               code: String(o?.code ?? ""),
               label: String(o?.label ?? ""),
