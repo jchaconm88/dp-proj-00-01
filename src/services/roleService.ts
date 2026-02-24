@@ -11,10 +11,14 @@ import {
 
 const COLLECTION = "roles";
 
+/** Por cada módulo (id de colección), lista de códigos de permiso asignados al rol. */
+export type RolePermissions = Record<string, string[]>;
+
 export interface RoleRecord {
   id: string;
   name: string;
   description: string | null;
+  permissions: RolePermissions;
 }
 
 export interface RoleAddInput {
@@ -24,15 +28,35 @@ export interface RoleAddInput {
 
 export type RoleEditInput = Partial<Omit<RoleRecord, "id">>;
 
+function normalizePermissions(raw: unknown): RolePermissions {
+  if (raw == null || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: RolePermissions = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof key !== "string") continue;
+    if (Array.isArray(value)) {
+      out[key] = value.filter((c): c is string => typeof c === "string");
+    }
+  }
+  return out;
+}
+
 /** Obtiene un rol por ID. */
 export async function get(id: string): Promise<RoleRecord | null> {
-  const doc = await getDocument<RoleRecord>(COLLECTION, id);
-  return doc;
+  const doc = await getDocument<RoleRecord & { permissions?: unknown }>(COLLECTION, id);
+  if (!doc) return null;
+  return {
+    ...doc,
+    permissions: normalizePermissions(doc.permissions),
+  };
 }
 
 /** Lista todos los roles. */
 export async function list(): Promise<RoleRecord[]> {
-  return getCollection<RoleRecord>(COLLECTION);
+  const list = await getCollection<RoleRecord & { permissions?: unknown }>(COLLECTION);
+  return list.map((doc) => ({
+    ...doc,
+    permissions: normalizePermissions(doc.permissions),
+  }));
 }
 
 /** Crea un rol (incluye auditoría createdAt/createBy). */

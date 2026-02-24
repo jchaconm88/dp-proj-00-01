@@ -41,7 +41,7 @@ export async function getDocument<T = DocumentData>(
  * Agrega un documento a la colección. Añade automáticamente createdAt y createBy.
  * @returns El ID del documento creado.
  */
-export async function addDocument<T extends Record<string, unknown>>(
+export async function addDocument<T>(
   collectionName: string,
   data: T
 ): Promise<string> {
@@ -56,7 +56,43 @@ export async function addDocument<T extends Record<string, unknown>>(
 }
 
 /**
+ * Crea un documento con ID específico. Añade createdAt y createBy.
+ * Útil cuando el id debe ser un valor conocido (ej. nombre de colección).
+ */
+export async function createDocumentWithId<T extends Record<string, unknown>>(
+  collectionName: string,
+  documentId: string,
+  data: T
+): Promise<void> {
+  if (!db) throw new Error("Firestore no está disponible.");
+  const createBy = getCurrentUserEmail();
+  await setDoc(doc(db, collectionName, documentId), {
+    ...data,
+    createdAt: serverTimestamp(),
+    createBy,
+  }, { merge: false });
+}
+
+/** Elimina propiedades undefined de un objeto/array (Firestore no acepta undefined). */
+function stripUndefined<T>(value: T): T {
+  if (value === undefined) return value;
+  if (Array.isArray(value)) {
+    return value.map((item) => stripUndefined(item)) as T;
+  }
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, stripUndefined(v)])
+    ) as T;
+  }
+  return value;
+}
+
+/**
  * Actualiza un documento (parcial). Añade automáticamente updateAt y updateBy.
+ * Los valores undefined en data se omiten (Firestore no los acepta).
+ * updateAt se envía como serverTimestamp() sin procesar para que Firestore guarde la fecha en servidor.
  */
 export async function updateDocument<T extends Record<string, unknown>>(
   collectionName: string,
@@ -65,8 +101,9 @@ export async function updateDocument<T extends Record<string, unknown>>(
 ): Promise<void> {
   if (!db) throw new Error("Firestore no está disponible.");
   const updateBy = getCurrentUserEmail();
+  const cleanData = stripUndefined(data) as Record<string, unknown>;
   await updateDoc(doc(db, collectionName, documentId), {
-    ...data,
+    ...cleanData,
     updateAt: serverTimestamp(),
     updateBy,
   });

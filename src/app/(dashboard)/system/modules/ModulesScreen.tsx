@@ -2,41 +2,41 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import * as roleService from "@/services/roleService";
-import type { RoleRecord } from "@/services/roleService";
+import * as moduleService from "@/services/moduleService";
+import type { ModuleRecord } from "@/services/moduleService";
 import { DpContent, DpContentHeader } from "@/components/DpContent";
 import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
 
-export type { RoleRecord };
+export type { ModuleRecord };
 
 const TABLE_DEF: DpTableDefColumn[] = [
-  { header: "Nombre", column: "name", order: 1, display: true, filter: true },
+  { header: "Colección", column: "id", order: 1, display: true, filter: true },
   { header: "Descripción", column: "description", order: 2, display: true, filter: true },
 ];
 
-export interface RolesScreenProps {
+export interface ModulesScreenProps {
   refreshTrigger?: number;
   onRefresh?: () => void;
 }
 
-export default function RolesScreen({ refreshTrigger, onRefresh }: RolesScreenProps) {
+export default function ModulesScreen({ refreshTrigger, onRefresh }: ModulesScreenProps) {
   const router = useRouter();
-  const tableRef = useRef<DpTableRef<RoleRecord>>(null);
+  const tableRef = useRef<DpTableRef<ModuleRecord>>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [filterValue, setFilterValue] = useState("");
 
-  const fetchRoles = async () => {
+  const fetchModules = async () => {
     setLoading(true);
     setError(null);
     tableRef.current?.setLoading(true);
     try {
-      const list = await roleService.list();
+      const list = await moduleService.list();
       tableRef.current?.setDatasource(list);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cargar roles.");
+      setError(err instanceof Error ? err.message : "Error al cargar módulos.");
       tableRef.current?.clearDatasource();
     } finally {
       setLoading(false);
@@ -45,25 +45,25 @@ export default function RolesScreen({ refreshTrigger, onRefresh }: RolesScreenPr
   };
 
   useEffect(() => {
-    fetchRoles();
+    fetchModules();
   }, [refreshTrigger]);
 
   const handleRefresh = () => {
-    fetchRoles();
+    fetchModules();
     onRefresh?.();
   };
 
   const openAdd = () => {
-    router.push("/system/roles/add");
+    router.push("/system/modules/add");
   };
 
-  const openEdit = (role: RoleRecord) => {
-    router.push(`/system/roles/edit/${role.id}`);
+  const openEdit = (module: ModuleRecord) => {
+    router.push("/system/modules/edit/" + encodeURIComponent(module.id));
   };
 
-  /** Al hacer clic en el nombre (link): abre la pantalla info. */
-  const openInfo = (role: RoleRecord) => {
-    router.push("/system/roles/info/" + encodeURIComponent(role.id));
+  /** Al hacer clic en el nombre de la colección (link): abre la pantalla info. */
+  const openInfo = (module: ModuleRecord) => {
+    router.push("/system/modules/info/" + encodeURIComponent(module.id));
   };
 
   const deleteSelected = async () => {
@@ -71,9 +71,9 @@ export default function RolesScreen({ refreshTrigger, onRefresh }: RolesScreenPr
     if (selected.length === 0) return;
     setSaving(true);
     try {
-      await roleService.removeMany(selected);
+      await moduleService.removeMany(selected);
       tableRef.current?.clearSelectedRows();
-      await fetchRoles();
+      await fetchModules();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al eliminar.");
     } finally {
@@ -87,7 +87,7 @@ export default function RolesScreen({ refreshTrigger, onRefresh }: RolesScreenPr
   };
 
   return (
-    <DpContent title="ROLES">
+    <DpContent title="MÓDULOS">
       <DpContentHeader
         filterValue={filterValue}
         onFilter={handleFilter}
@@ -96,7 +96,7 @@ export default function RolesScreen({ refreshTrigger, onRefresh }: RolesScreenPr
         onDelete={deleteSelected}
         deleteDisabled={selectedCount === 0 || saving}
         loading={loading}
-        filterPlaceholder="Filtrar por nombre o descripción..."
+        filterPlaceholder="Filtrar por colección o descripción..."
       />
 
       {error && (
@@ -105,16 +105,16 @@ export default function RolesScreen({ refreshTrigger, onRefresh }: RolesScreenPr
         </div>
       )}
 
-      <DpTable<RoleRecord>
+      <DpTable<ModuleRecord>
         ref={tableRef}
         tableDef={TABLE_DEF}
-        linkColumn="name"
+        linkColumn="id"
         onDetail={openInfo}
         onEdit={openEdit}
         onSelectionChange={(rows) => setSelectedCount(rows.length)}
         showFilterInHeader={false}
-        filterPlaceholder="Filtrar por nombre o descripción..."
-        emptyMessage='No hay roles en la colección "roles".'
+        filterPlaceholder="Filtrar por colección o descripción..."
+        emptyMessage='No hay módulos en la colección "modules".'
         emptyFilterMessage="No hay resultados para el filtro."
       />
     </DpContent>

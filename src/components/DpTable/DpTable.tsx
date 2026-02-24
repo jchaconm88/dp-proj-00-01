@@ -156,12 +156,16 @@ function DpTableInner<T extends DpTableRow>(
   const bodyLink = useCallback(
     (row: T, col: DpTableDefColumn) => {
       const value = getCellValue(row as Record<string, unknown>, col.column);
-      const isLink = linkColumn === col.column && onDetail;
-      if (isLink) {
+      const isLinkColumn = linkColumn === col.column && onDetail;
+      if (isLinkColumn) {
         return (
           <button
             type="button"
-            onClick={() => onDetail(row)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDetail(row);
+            }}
             className="p-link font-medium text-primary cursor-pointer border-none bg-transparent underline"
           >
             {String(value)}
@@ -219,14 +223,23 @@ function DpTableInner<T extends DpTableRow>(
             body={bodyEdit}
           />
         )}
-        {columns.map((col) => (
-          <Column
-            key={col.column}
-            field={col.column}
-            header={col.header}
-            body={(rowData: T) => bodyLink(rowData, col)}
-          />
-        ))}
+        {columns.map((col) => {
+          const isLinkCol = linkColumn === col.column && onDetail;
+          return (
+            <Column
+              key={col.column}
+              field={isLinkCol ? undefined : col.column}
+              sortField={col.column}
+              header={col.header}
+              body={(arg: T | { rowData: T }) => {
+                const rowData = arg != null && typeof arg === "object" && "rowData" in arg
+                  ? (arg as { rowData: T }).rowData
+                  : (arg as T);
+                return bodyLink(rowData, col);
+              }}
+            />
+          );
+        })}
       </DataTable>
     </div>
   );

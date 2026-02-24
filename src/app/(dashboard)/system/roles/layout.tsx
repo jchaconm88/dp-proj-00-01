@@ -13,6 +13,7 @@ export default function SystemRolesLayout({
   const pathname = usePathname();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  const isInfoPage = pathname.startsWith("/system/roles/info");
   const showAdd = pathname === "/system/roles/add";
   const editMatch = pathname.match(/^\/system\/roles\/edit\/([^/]+)$/);
   const editRoleId = editMatch ? editMatch[1] : null;
@@ -21,6 +22,10 @@ export default function SystemRolesLayout({
   const onDialogSuccess = useCallback(() => {
     setRefreshTrigger((k) => k + 1);
   }, []);
+
+  if (isInfoPage) {
+    return <>{children}</>;
+  }
 
   return (
     <>

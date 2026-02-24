@@ -34,6 +34,11 @@
         "title": "Roles",
         "link": "/system/roles",
         "permission": ["view", "role"]
+      },
+      {
+        "title": "Módulos",
+        "link": "/system/modules",
+        "permission": ["view", "module"]
       }
     ]
   },
