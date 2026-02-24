@@ -2,12 +2,14 @@
 
 import { useCallback, useMemo } from "react";
 import { useUser } from "@/contexts/UserContext";
+import { useAlert } from "@/contexts/AlertContext";
 import { isGranted as isGrantedAccess } from "@/services/accessService";
 
 const NO_PERMISSION_MESSAGE = "No tiene permisos para realizar esta acción.";
 
 export function useAccessService() {
   const { user } = useUser();
+  const { showAlert } = useAlert();
   const isGranted = useCallback(
     (permission: string, module: string) => isGrantedAccess(user, permission, module),
     [user]
@@ -15,10 +17,10 @@ export function useAccessService() {
   const requirePermissionOrAlert = useCallback(
     (permission: string, module: string): boolean => {
       if (isGrantedAccess(user, permission, module)) return true;
-      if (typeof window !== "undefined") window.alert(NO_PERMISSION_MESSAGE);
+      showAlert("error", NO_PERMISSION_MESSAGE);
       return false;
     },
-    [user]
+    [user, showAlert]
   );
   return useMemo(
     () => ({ isGranted, requirePermissionOrAlert }),

@@ -11,6 +11,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Dropdown } from "primereact/dropdown";
 import { useUser } from "@/contexts/UserContext";
 import { isGranted as isGrantedAccess } from "@/services/accessService";
+import DpAlertBanner from "@/components/DpAlertBanner";
 
 /** Ítem del menú en formato plano (menu.json) */
 export interface MenuItemRaw {
@@ -385,9 +386,8 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
         </aside>
 
         {/* Contenido principal */}
-        <main
-          className="min-w-0 flex-1 overflow-auto p-6"
-        >
+        <main className="min-w-0 flex-1 overflow-auto p-6">
+          <DpAlertBanner />
           {children}
         </main>
       </div>

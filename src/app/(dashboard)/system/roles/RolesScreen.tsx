@@ -11,6 +11,7 @@ import {
   MODULE_ROLE,
   PERMISSION_VIEW,
   PERMISSION_CREATE,
+  PERMISSION_UPDATE,
   PERMISSION_DELETE,
 } from "@/constants/permissions";
 
@@ -67,7 +68,7 @@ export default function RolesScreen({ refreshTrigger, onRefresh }: RolesScreenPr
   };
 
   const openEdit = (role: RoleRecord) => {
-    if (!requirePermissionOrAlert(PERMISSION_VIEW, MODULE_ROLE)) return;
+    if (!requirePermissionOrAlert(PERMISSION_UPDATE, MODULE_ROLE)) return;
     router.push(`/system/roles/edit/${role.id}`);
   };
 

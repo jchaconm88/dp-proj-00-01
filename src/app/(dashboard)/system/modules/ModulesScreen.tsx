@@ -11,6 +11,7 @@ import {
   MODULE_MODULE,
   PERMISSION_VIEW,
   PERMISSION_CREATE,
+  PERMISSION_UPDATE,
   PERMISSION_DELETE,
 } from "@/constants/permissions";
 
@@ -67,7 +68,7 @@ export default function ModulesScreen({ refreshTrigger, onRefresh }: ModulesScre
   };
 
   const openEdit = (module: ModuleRecord) => {
-    if (!requirePermissionOrAlert(PERMISSION_VIEW, MODULE_MODULE)) return;
+    if (!requirePermissionOrAlert(PERMISSION_UPDATE, MODULE_MODULE)) return;
     router.push("/system/modules/edit/" + encodeURIComponent(module.id));
   };
 

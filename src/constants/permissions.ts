@@ -6,6 +6,7 @@
 /** Códigos de permiso (ej. definidos en cada módulo en Firestore). */
 export const PERMISSION_VIEW = "view";
 export const PERMISSION_CREATE = "create";
+export const PERMISSION_UPDATE = "update";
 export const PERMISSION_DELETE = "delete";
 
 /** Identificadores de módulo (colecciones / secciones del sistema). */

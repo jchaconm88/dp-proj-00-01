@@ -11,6 +11,7 @@ import {
   MODULE_USER,
   PERMISSION_VIEW,
   PERMISSION_CREATE,
+  PERMISSION_UPDATE,
   PERMISSION_DELETE,
 } from "@/constants/permissions";
 
@@ -69,7 +70,7 @@ export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenPr
   };
 
   const openEdit = (user: UserRecord) => {
-    if (!requirePermissionOrAlert(PERMISSION_VIEW, MODULE_USER)) return;
+    if (!requirePermissionOrAlert(PERMISSION_UPDATE, MODULE_USER)) return;
     router.push(`/system/users/edit/${user.id}`);
   };
 

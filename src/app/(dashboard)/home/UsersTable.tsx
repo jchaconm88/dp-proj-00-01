@@ -134,6 +134,7 @@ export default function UsersTable() {
           <select
             className="rounded border border-zinc-300 bg-white px-2 py-1 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200"
             value={PAGE_SIZE}
+            onChange={() => {}}
             aria-label="Items por página"
           >
             <option value={5}>5</option>
