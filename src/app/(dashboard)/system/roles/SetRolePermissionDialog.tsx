@@ -5,6 +5,7 @@ import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { MultiSelect } from "primereact/multiselect";
 import { Button } from "primereact/button";
+import { Checkbox } from "primereact/checkbox";
 import * as roleService from "@/services/roleService";
 import type { RolePermissions } from "@/services/roleService";
 import * as moduleService from "@/services/moduleService";
@@ -81,7 +82,13 @@ export default function SetRolePermissionDialog({
     }
   };
 
+  const fullAccessModule = selectedCodes.includes("*");
   const codeOptions = modulePermissions.map((p) => ({ label: p.label || p.code, value: p.code }));
+  const selectedCodesOnly = selectedCodes.filter((c) => c !== "*");
+
+  const onFullAccessModuleChange = (checked: boolean) => {
+    setSelectedCodes(checked ? ["*"] : []);
+  };
 
   return (
     <Dialog
@@ -119,15 +126,35 @@ export default function SetRolePermissionDialog({
           </div>
         )}
         {selectedModuleId && (
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Permisos</label>
-            <MultiSelect
-              value={selectedCodes}
-              options={codeOptions}
-              onChange={(e) => setSelectedCodes(e.value ?? [])}
-              placeholder="Seleccionar permisos"
-              className="w-full"
-            />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Checkbox
+                inputId="module-full-access"
+                checked={fullAccessModule}
+                onChange={(e) => onFullAccessModuleChange(e.checked === true)}
+                disabled={saving}
+                className="[&+label]:cursor-pointer"
+              />
+              <label htmlFor="module-full-access" className="cursor-pointer text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Acceso total al módulo (*)
+              </label>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="font-medium text-zinc-700 dark:text-zinc-300">Permisos</label>
+              <MultiSelect
+                value={selectedCodesOnly}
+                options={codeOptions}
+                onChange={(e) => setSelectedCodes(e.value ?? [])}
+                placeholder="Seleccionar permisos"
+                className="w-full"
+                disabled={fullAccessModule || saving}
+              />
+              {fullAccessModule && (
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Con acceso total no se pueden elegir permisos concretos.
+                </span>
+              )}
+            </div>
           </div>
         )}
         <div className="mt-2 flex justify-end gap-2">

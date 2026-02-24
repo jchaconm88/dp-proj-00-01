@@ -2,11 +2,15 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { Checkbox } from "primereact/checkbox";
 import * as roleService from "@/services/roleService";
 import type { RoleRecord, RolePermissions } from "@/services/roleService";
 import { DpContentInfo, DpContentHeader } from "@/components/DpContent";
 import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
 import SetRolePermissionDialog from "../../SetRolePermissionDialog";
+
+const FULL_ACCESS_MODULE = "*";
+const FULL_ACCESS_CODE = "*";
 
 interface PermissionRow {
   id: string;
@@ -117,6 +121,29 @@ export default function RoleInfoPage() {
     permissionTableRef.current?.filter(value);
   };
 
+  const hasFullAccess =
+    role != null && Array.isArray(role.permissions?.[FULL_ACCESS_MODULE]) && role.permissions[FULL_ACCESS_MODULE].includes(FULL_ACCESS_CODE);
+
+  const onFullAccessChange = async (checked: boolean) => {
+    if (!role || !roleId) return;
+    setSaving(true);
+    setError(null);
+    const newPermissions: RolePermissions = { ...(role.permissions ?? {}) };
+    if (checked) {
+      newPermissions[FULL_ACCESS_MODULE] = [FULL_ACCESS_CODE];
+    } else {
+      delete newPermissions[FULL_ACCESS_MODULE];
+    }
+    try {
+      await roleService.edit(roleId, { permissions: newPermissions });
+      await fetchRole();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al actualizar acceso total.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const backToRoles = () => router.push("/system/roles");
   const editRole = () => router.push("/system/roles/edit/" + encodeURIComponent(roleId));
 
@@ -158,6 +185,25 @@ export default function RoleInfoPage() {
             {error}
           </div>
         )}
+
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">Acceso</h2>
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+            <Checkbox
+              inputId="role-full-access"
+              checked={hasFullAccess}
+              onChange={(e) => onFullAccessChange(e.checked === true)}
+              disabled={saving}
+              className="[&+label]:cursor-pointer"
+            />
+            <label htmlFor="role-full-access" className="cursor-pointer text-sm text-zinc-700 dark:text-zinc-300">
+              Acceso total (permiso <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-600">*:*</code>)
+            </label>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              Si está activo, el rol tendrá todos los permisos sin definir módulos concretos.
+            </span>
+          </div>
+        </section>
 
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">Permisos por módulo</h2>

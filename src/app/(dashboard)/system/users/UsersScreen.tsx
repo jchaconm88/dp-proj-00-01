@@ -6,6 +6,13 @@ import * as userService from "@/services/userService";
 import type { UserRecord } from "@/services/userService";
 import { DpContent, DpContentHeader } from "@/components/DpContent";
 import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
+import { useAccessService } from "@/hooks/useAccessService";
+import {
+  MODULE_USER,
+  PERMISSION_VIEW,
+  PERMISSION_CREATE,
+  PERMISSION_DELETE,
+} from "@/constants/permissions";
 
 export type { UserRecord };
 
@@ -23,6 +30,7 @@ export interface UsersScreenProps {
 
 export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenProps) {
   const router = useRouter();
+  const { requirePermissionOrAlert } = useAccessService();
   const tableRef = useRef<DpTableRef<UserRecord>>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,14 +64,17 @@ export default function UsersScreen({ refreshTrigger, onRefresh }: UsersScreenPr
   };
 
   const openAdd = () => {
+    if (!requirePermissionOrAlert(PERMISSION_CREATE, MODULE_USER)) return;
     router.push("/system/users/add");
   };
 
   const openEdit = (user: UserRecord) => {
+    if (!requirePermissionOrAlert(PERMISSION_VIEW, MODULE_USER)) return;
     router.push(`/system/users/edit/${user.id}`);
   };
 
   const deleteSelected = async () => {
+    if (!requirePermissionOrAlert(PERMISSION_DELETE, MODULE_USER)) return;
     const selected = tableRef.current?.getSelectedRows() ?? [];
     if (selected.length === 0) return;
     setSaving(true);

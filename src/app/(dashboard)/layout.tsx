@@ -1,5 +1,7 @@
 import DashboardShell, { type MenuData } from "@/components/DashboardShell";
 import menuData from "@/data/menu.json";
+import { UserProvider } from "@/contexts/UserContext";
+import RouteGuard from "@/components/RouteGuard";
 
 export default function DashboardLayout({
   children,
@@ -7,8 +9,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <DashboardShell menu={menuData as MenuData}>
-      {children}
-    </DashboardShell>
+    <UserProvider>
+      <DashboardShell menu={menuData as MenuData}>
+        <RouteGuard>{children}</RouteGuard>
+      </DashboardShell>
+    </UserProvider>
   );
 }

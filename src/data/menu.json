@@ -23,7 +23,6 @@
     "title": "Sistema",
     "enabled": true,
     "icon": "layout-outline",
-    "permission": ["view", "system"],
     "children": [
       {
         "title": "Usuarios",

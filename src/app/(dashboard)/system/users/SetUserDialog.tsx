@@ -4,8 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
+import { MultiSelect } from "primereact/multiselect";
 import { Button } from "primereact/button";
 import * as userService from "@/services/userService";
+import * as roleService from "@/services/roleService";
+import type { RoleRecord } from "@/services/roleService";
 
 export interface SetUserDialogProps {
   /** Si es true, se muestra el diálogo. */
@@ -20,7 +23,8 @@ export default function SetUserDialog({ visible, userId, onSuccess }: SetUserDia
   const isEdit = !!userId;
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("");
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
+  const [roles, setRoles] = useState<RoleRecord[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,38 +40,56 @@ export default function SetUserDialog({ visible, userId, onSuccess }: SetUserDia
   useEffect(() => {
     if (!visible) return;
     setError(null);
-    if (!userId) {
-      setDisplayName("");
-      setEmail("");
-      setRole("");
-      setLoading(false);
-      return;
-    }
+    let cancelled = false;
     setLoading(true);
-    userService
-      .get(userId)
-      .then((data) => {
+    roleService
+      .list()
+      .then((list) => {
+        if (cancelled) return;
+        setRoles(list);
+        if (!userId) {
+          setDisplayName("");
+          setEmail("");
+          setSelectedRoleIds([]);
+          setLoading(false);
+          return;
+        }
+        return userService.get(userId).then((data) => ({ data, list }));
+      })
+      .then((result) => {
+        if (cancelled || !result) return;
+        const { data, list } = result;
         if (!data) {
           setError("Usuario no encontrado.");
+          setLoading(false);
           return;
         }
         setDisplayName(data.displayName ?? "");
         setEmail(data.email ?? "");
-        setRole(Array.isArray(data.role) ? data.role.join(", ") : "");
+        const roleValues = Array.isArray(data.role) ? data.role.filter((r): r is string => typeof r === "string") : [];
+        const ids = roleValues.map((r) => {
+          const byId = list.find((x) => x.id === r);
+          if (byId) return byId.id;
+          const byName = list.find((x) => x.name === r);
+          return byName?.id;
+        }).filter((id): id is string => !!id);
+        setSelectedRoleIds(ids);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : "Error al cargar usuario.");
+        if (!cancelled) setError(err instanceof Error ? err.message : "Error al cargar.");
       })
       .finally(() => {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [visible, userId]);
 
   const save = async () => {
-    const roles = role
-      .split(",")
-      .map((r) => r.trim())
-      .filter(Boolean);
+    const roleNames = selectedRoleIds
+      .map((id) => roles.find((r) => r.id === id)?.name)
+      .filter((n): n is string => !!n);
     setSaving(true);
     setError(null);
     try {
@@ -75,13 +97,13 @@ export default function SetUserDialog({ visible, userId, onSuccess }: SetUserDia
         await userService.edit(userId, {
           displayName: displayName.trim() || null,
           email: email.trim(),
-          role: roles,
+          role: roleNames,
         });
       } else {
         await userService.add({
           displayName: displayName.trim() || null,
           email: email.trim(),
-          role: roles,
+          role: roleNames,
         });
       }
       onSuccess?.();
@@ -140,13 +162,14 @@ export default function SetUserDialog({ visible, userId, onSuccess }: SetUserDia
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="setuser-role" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Roles (separados por coma)
+              Roles
             </label>
-            <InputText
+            <MultiSelect
               id="setuser-role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              placeholder="admin, editor"
+              value={selectedRoleIds}
+              options={roles.map((r) => ({ label: r.description || r.name, value: r.id }))}
+              onChange={(e) => setSelectedRoleIds(e.value ?? [])}
+              placeholder="Seleccionar roles"
               className="w-full"
             />
           </div>

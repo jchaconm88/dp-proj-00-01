@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -9,6 +9,8 @@ import { auth, db } from "@/lib/firebase";
 import { Icon } from "./icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Dropdown } from "primereact/dropdown";
+import { useUser } from "@/contexts/UserContext";
+import { isGranted as isGrantedAccess } from "@/services/accessService";
 
 /** Ítem del menú en formato plano (menu.json) */
 export interface MenuItemRaw {
@@ -69,6 +71,7 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme } = useTheme() ?? { theme: "light" as const, setTheme: () => { } };
+  const { user: accessUser } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userName, setUserName] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -129,7 +132,36 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
     router.replace("/");
   };
 
-  const sections = menuToSections(menu);
+  const canSee = (perm?: string[]) => {
+    if (!perm || perm.length < 2) return true;
+    const [permission, module] = perm;
+    return isGrantedAccess(accessUser, permission, module);
+  };
+
+  const filteredMenu = useMemo<MenuData>(() => {
+    const out: MenuItemRaw[] = [];
+    for (const item of menu) {
+      // Los ítems con group:true solo definen secciones (se conservan).
+      if (item.group === true) {
+        out.push(item);
+        continue;
+      }
+      if (item.enabled === false) continue;
+      if (item.permission && !canSee(item.permission)) continue;
+
+      if (item.children && item.children.length > 0) {
+        const children = item.children.filter((c) => !c.permission || canSee(c.permission));
+        if (children.length === 0) continue;
+        out.push({ ...item, children });
+      } else {
+        out.push(item);
+      }
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menu, accessUser]);
+
+  const sections = useMemo(() => menuToSections(filteredMenu), [filteredMenu]);
 
   const iconName = (name?: string): Parameters<typeof Icon>[0]["name"] => {
     if (!name) return "folder";

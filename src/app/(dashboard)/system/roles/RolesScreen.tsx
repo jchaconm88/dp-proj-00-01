@@ -6,6 +6,13 @@ import * as roleService from "@/services/roleService";
 import type { RoleRecord } from "@/services/roleService";
 import { DpContent, DpContentHeader } from "@/components/DpContent";
 import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
+import { useAccessService } from "@/hooks/useAccessService";
+import {
+  MODULE_ROLE,
+  PERMISSION_VIEW,
+  PERMISSION_CREATE,
+  PERMISSION_DELETE,
+} from "@/constants/permissions";
 
 export type { RoleRecord };
 
@@ -21,6 +28,7 @@ export interface RolesScreenProps {
 
 export default function RolesScreen({ refreshTrigger, onRefresh }: RolesScreenProps) {
   const router = useRouter();
+  const { requirePermissionOrAlert } = useAccessService();
   const tableRef = useRef<DpTableRef<RoleRecord>>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,19 +62,23 @@ export default function RolesScreen({ refreshTrigger, onRefresh }: RolesScreenPr
   };
 
   const openAdd = () => {
+    if (!requirePermissionOrAlert(PERMISSION_CREATE, MODULE_ROLE)) return;
     router.push("/system/roles/add");
   };
 
   const openEdit = (role: RoleRecord) => {
+    if (!requirePermissionOrAlert(PERMISSION_VIEW, MODULE_ROLE)) return;
     router.push(`/system/roles/edit/${role.id}`);
   };
 
   /** Al hacer clic en el nombre (link): abre la pantalla info. */
   const openInfo = (role: RoleRecord) => {
+    if (!requirePermissionOrAlert(PERMISSION_VIEW, MODULE_ROLE)) return;
     router.push("/system/roles/info/" + encodeURIComponent(role.id));
   };
 
   const deleteSelected = async () => {
+    if (!requirePermissionOrAlert(PERMISSION_DELETE, MODULE_ROLE)) return;
     const selected = tableRef.current?.getSelectedRows() ?? [];
     if (selected.length === 0) return;
     setSaving(true);
