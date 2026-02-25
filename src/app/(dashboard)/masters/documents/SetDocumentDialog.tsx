@@ -1,0 +1,180 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Dialog } from "primereact/dialog";
+import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
+import { Button } from "primereact/button";
+import * as documentService from "@/services/documentService";
+import * as documentTypeService from "@/services/documentTypeService";
+import type { DocumentTypeRecord } from "@/services/documentTypeService";
+
+export interface SetDocumentDialogProps {
+  visible: boolean;
+  documentId: string | null;
+  onSuccess?: () => void;
+}
+
+export default function SetDocumentDialog({
+  visible,
+  documentId,
+  onSuccess,
+}: SetDocumentDialogProps) {
+  const router = useRouter();
+  const isEdit = !!documentId;
+  const [id, setId] = useState("");
+  const [name, setName] = useState("");
+  const [selectedDocumentTypeId, setSelectedDocumentTypeId] = useState<string | null>(null);
+  const [documentTypes, setDocumentTypes] = useState<DocumentTypeRecord[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const hide = () => {
+    router.push("/masters/documents");
+  };
+
+  const onHide = () => {
+    if (!saving) hide();
+  };
+
+  useEffect(() => {
+    if (!visible) return;
+    setError(null);
+    documentTypeService.list().then(setDocumentTypes).catch(() => setDocumentTypes([]));
+    if (!documentId) {
+      setId("");
+      setName("");
+      setSelectedDocumentTypeId(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    documentService
+      .get(documentId)
+      .then((data) => {
+        if (!data) {
+          setError("Documento no encontrado.");
+          return;
+        }
+        setId(data.id ?? "");
+        setName(data.name ?? "");
+        setSelectedDocumentTypeId(data.documentType || null);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Error al cargar.");
+      })
+      .finally(() => setLoading(false));
+  }, [visible, documentId]);
+
+  const save = async () => {
+    const trimmedId = id.trim().toLowerCase().replace(/\s+/g, "-");
+    if (!name.trim() || !selectedDocumentTypeId) return;
+    if (!isEdit && !trimmedId) return;
+    setSaving(true);
+    setError(null);
+    try {
+      if (documentId) {
+        await documentService.edit(documentId, {
+          name: name.trim(),
+          documentType: selectedDocumentTypeId,
+        });
+      } else {
+        await documentService.add({
+          id: trimmedId,
+          name: name.trim(),
+          documentType: selectedDocumentTypeId,
+        });
+      }
+      onSuccess?.();
+      hide();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al guardar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const documentTypeOptions = documentTypes.map((dt) => ({
+    label: dt.name,
+    value: dt.id,
+  }));
+
+  return (
+    <Dialog
+      header={isEdit ? "Editar documento" : "Agregar documento"}
+      visible={visible}
+      style={{ width: "28rem" }}
+      onHide={onHide}
+      closable={!saving}
+      closeOnEscape={!saving}
+      dismissableMask={!saving}
+      modal
+    >
+      {loading ? (
+        <div className="py-8 text-center text-zinc-500">Cargando…</div>
+      ) : (
+        <div className="flex flex-col gap-4 pt-2">
+          {error && (
+            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
+              {error}
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="setdoc-id" className="font-medium text-zinc-700 dark:text-zinc-300">
+              Id (en la colección)
+            </label>
+            <InputText
+              id="setdoc-id"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              placeholder="Ej. dni"
+              className="w-full font-mono text-sm"
+              disabled={isEdit}
+            />
+            {isEdit && (
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                El id no se puede modificar al editar.
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="setdoc-name" className="font-medium text-zinc-700 dark:text-zinc-300">
+              Nombre
+            </label>
+            <InputText
+              id="setdoc-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ej. Documento Nacional de Identidad"
+              className="w-full"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="setdoc-type" className="font-medium text-zinc-700 dark:text-zinc-300">
+              Tipo de documento
+            </label>
+            <Dropdown
+              id="setdoc-type"
+              value={selectedDocumentTypeId}
+              options={documentTypeOptions}
+              onChange={(e) => setSelectedDocumentTypeId(e.value)}
+              placeholder="Seleccionar tipo"
+              className="w-full"
+            />
+          </div>
+          <div className="mt-2 flex justify-end gap-2">
+            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
+            <Button
+              label={saving ? "Guardando…" : "Guardar"}
+              onClick={save}
+              disabled={saving || !name.trim() || !selectedDocumentTypeId || (!isEdit && !id.trim())}
+              loading={saving}
+            />
+          </div>
+        </div>
+      )}
+    </Dialog>
+  );
+}

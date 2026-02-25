@@ -6,7 +6,6 @@ import Link from "next/link";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { Icon } from "./icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Dropdown } from "primereact/dropdown";
 import { useUser } from "@/contexts/UserContext";
@@ -43,22 +42,11 @@ function menuToSections(menu: MenuData): { title?: string; items: MenuItemRaw[] 
   return sections;
 }
 
-/** Mapeo de iconos outline (menu.json) a nombres del componente Icon */
-const ICON_MAP: Record<string, Parameters<typeof Icon>[0]["name"]> = {
-  "shopping-cart-outline": "cart",
-  "home-outline": "house",
-  "layout-outline": "folder",
-  "edit-outline": "pencil",
-  "grid-outline": "grid",
-  "square-outline": "square",
-  "message-outline": "message",
-  "map-outline": "map",
-  "chart-outline": "chart",
-  "text-outline": "text",
-  "table-outline": "table",
-  "wrench-outline": "wrench",
-  "lock-outline": "lock",
-};
+/** Nombre de icono de PrimeIcons (solo caracteres válidos). Si no es válido, usa "folder". */
+function primeIconClass(name?: string, className = "h-5 w-5 shrink-0"): string {
+  const base = name && /^[a-z0-9-]+$/i.test(name) ? name : "folder";
+  return `pi pi-${base} ${className}`.trim();
+}
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -164,11 +152,6 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
 
   const sections = useMemo(() => menuToSections(filteredMenu), [filteredMenu]);
 
-  const iconName = (name?: string): Parameters<typeof Icon>[0]["name"] => {
-    if (!name) return "folder";
-    return ICON_MAP[name] ?? "folder";
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-100 dark:bg-navy-900">
@@ -191,7 +174,7 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
             className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 dark:text-navy-300 dark:hover:bg-navy-600"
             aria-label="Toggle menu"
           >
-            <Icon name="menu" />
+            <i className="pi pi-bars h-5 w-5" aria-hidden />
           </button>
           <span className="text-lg font-semibold text-zinc-900 dark:text-navy-100">
             {appTitle}
@@ -203,21 +186,21 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
             className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 dark:text-navy-300 dark:hover:bg-navy-600"
             aria-label="Buscar"
           >
-            <Icon name="search" />
+            <i className="pi pi-search h-5 w-5" aria-hidden />
           </button>
           <button
             type="button"
             className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 dark:text-navy-300 dark:hover:bg-navy-600"
             aria-label="Correo"
           >
-            <Icon name="mail" />
+            <i className="pi pi-envelope h-5 w-5" aria-hidden />
           </button>
           <button
             type="button"
             className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 dark:text-navy-300 dark:hover:bg-navy-600"
             aria-label="Notificaciones"
           >
-            <Icon name="bell" />
+            <i className="pi pi-bell h-5 w-5" aria-hidden />
           </button>
           <div className="ml-2 flex items-center gap-3">
           <Dropdown
@@ -229,7 +212,7 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
             placeholder="Tema"
           />
             <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-navy-600 dark:bg-navy-600">
-              <Icon name="user" className="h-5 w-5 text-zinc-500 dark:text-navy-300" />
+              <i className="pi pi-user h-5 w-5 text-zinc-500 dark:text-navy-300" aria-hidden />
               <span className="text-sm font-medium text-zinc-800 dark:text-navy-200">
                 {userName}
               </span>
@@ -278,14 +261,11 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
                               onClick={() => toggleExpanded(item.title)}
                               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-zinc-700 transition-colors hover:bg-zinc-200/80 dark:text-navy-200 dark:hover:bg-navy-600"
                             >
-                              <Icon
-                                name={iconName(item.icon)}
-                                className="h-5 w-5 shrink-0"
-                              />
+                              <i className={primeIconClass(item.icon)} aria-hidden />
                               <span className="flex-1">{item.title}</span>
-                              <Icon
-                                name={isExpanded ? "chevronDown" : "chevron"}
-                                className="h-4 w-4 shrink-0 opacity-70"
+                              <i
+                                className={`pi shrink-0 opacity-70 ${isExpanded ? "pi-chevron-down h-4 w-4" : "pi-chevron-right h-4 w-4"}`}
+                                aria-hidden
                               />
                             </button>
                             {isExpanded && (
@@ -322,10 +302,7 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
                             }`}
                         >
                           {item.icon && (
-                            <Icon
-                              name={iconName(item.icon)}
-                              className="h-5 w-5 shrink-0"
-                            />
+                            <i className={primeIconClass(item.icon)} aria-hidden />
                           )}
                           <span className="flex-1">{item.title}</span>
                         </Link>
@@ -344,20 +321,14 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
                               className={`flex flex-col items-center justify-center rounded-lg p-2.5 text-zinc-700 transition-colors hover:bg-zinc-200/80 dark:text-navy-200 dark:hover:bg-navy-600 ${pathname === firstChildLink.link ? "bg-zinc-200 dark:bg-navy-500" : ""
                                 }`}
                             >
-                              <Icon
-                                name={iconName(item.icon)}
-                                className="h-5 w-5 shrink-0"
-                              />
+                              <i className={primeIconClass(item.icon)} aria-hidden />
                             </Link>
                           ) : (
                             <span
                               title={item.title}
                               className="flex flex-col items-center justify-center rounded-lg p-2.5 text-zinc-500 dark:text-navy-300"
                             >
-                              <Icon
-                                name={iconName(item.icon)}
-                                className="h-5 w-5 shrink-0"
-                              />
+                              <i className={primeIconClass(item.icon)} aria-hidden />
                             </span>
                           )}
                         </div>
@@ -371,10 +342,7 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
                           className={`flex flex-col items-center justify-center rounded-lg p-2.5 text-zinc-700 transition-colors hover:bg-zinc-200/80 dark:text-navy-200 dark:hover:bg-navy-600 ${isActive ? "bg-zinc-200 dark:bg-navy-500" : ""
                             }`}
                         >
-                          <Icon
-                            name={iconName(item.icon)}
-                            className="h-5 w-5 shrink-0"
-                          />
+                          <i className={primeIconClass(item.icon)} aria-hidden />
                         </Link>
                       </div>
                     );
