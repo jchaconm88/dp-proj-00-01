@@ -149,9 +149,12 @@ export default function SetOrderDialog({
             <label className="font-medium text-zinc-700 dark:text-zinc-300">Cliente</label>
             <Dropdown
               value={clientId}
-              options={clients}
+              options={clients.map((c) => ({
+                id: c.id,
+                label: (c.commercialName?.trim() ? c.commercialName : c.businessName) || "",
+              }))}
               onChange={(e) => setClientId(e.value ?? "")}
-              optionLabel={(c) => (c as ClientRecord).commercialName?.trim() ? (c as ClientRecord).commercialName : (c as ClientRecord).businessName}
+              optionLabel="label"
               optionValue="id"
               placeholder="Seleccione un cliente"
               filter

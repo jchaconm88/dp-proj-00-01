@@ -89,7 +89,7 @@ export default function TripStopsScreen({ tripId }: TripStopsScreenProps) {
     setShowAdd(false);
   };
 
-  const openEvidence = (row: TripStopRecord) => {
+  const openEvidence = (row: { id: string }) => {
     router.push(`/transport/trips/${encodeURIComponent(tripId)}/trip-stops/${encodeURIComponent(row.id)}/evidence`);
   };
 

@@ -236,7 +236,7 @@ export default function SetDriverDialog({
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="Juan"
               className="w-full"
-              disabled={lockedFromEmployee}
+              disabled={!!lockedFromEmployee}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -246,7 +246,7 @@ export default function SetDriverDialog({
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Pérez"
               className="w-full"
-              disabled={lockedFromEmployee}
+              disabled={!!lockedFromEmployee}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -256,7 +256,7 @@ export default function SetDriverDialog({
               onChange={(e) => setDocumentNo(e.target.value)}
               placeholder="12345678"
               className="w-full"
-              disabled={lockedFromEmployee}
+              disabled={!!lockedFromEmployee}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -280,7 +280,7 @@ export default function SetDriverDialog({
               onChange={(e) => setPhoneNo(e.target.value)}
               placeholder="999999999"
               className="w-full"
-              disabled={lockedFromEmployee}
+              disabled={!!lockedFromEmployee}
             />
           </div>
 
