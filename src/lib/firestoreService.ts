@@ -208,3 +208,185 @@ export async function getFirst<T = DocumentData>(
   const d = snapshot.docs[0];
   return { id: d.id, ...d.data() } as { id: string } & T;
 }
+
+/** Ruta de una subcolección: parentCollection/parentId/subcollectionName */
+function subcollectionRef(
+  parentCollection: string,
+  parentId: string,
+  subcollectionName: string
+) {
+  if (!db) throw new Error("Firestore no está disponible.");
+  return collection(db, parentCollection, parentId, subcollectionName);
+}
+
+/**
+ * Obtiene todos los documentos de una subcolección.
+ */
+export async function getSubcollection<T = DocumentData>(
+  parentCollection: string,
+  parentId: string,
+  subcollectionName: string
+): Promise<({ id: string } & T)[]> {
+  const snapshot = await getDocs(subcollectionRef(parentCollection, parentId, subcollectionName));
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as { id: string } & T));
+}
+
+/**
+ * Obtiene un documento de una subcolección por ID.
+ */
+export async function getDocumentFromSubcollection<T = DocumentData>(
+  parentCollection: string,
+  parentId: string,
+  subcollectionName: string,
+  documentId: string
+): Promise<({ id: string } & T) | null> {
+  if (!db) throw new Error("Firestore no está disponible.");
+  const snap = await getDoc(doc(db, parentCollection, parentId, subcollectionName, documentId));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as { id: string } & T;
+}
+
+/**
+ * Agrega un documento a una subcolección. Retorna el ID generado.
+ */
+export async function addDocumentToSubcollection<T>(
+  parentCollection: string,
+  parentId: string,
+  subcollectionName: string,
+  data: T
+): Promise<string> {
+  if (!db) throw new Error("Firestore no está disponible.");
+  const createBy = getCurrentUserEmail();
+  const ref = await addDoc(subcollectionRef(parentCollection, parentId, subcollectionName), {
+    ...data,
+    createdAt: serverTimestamp(),
+    createBy,
+  });
+  return ref.id;
+}
+
+/**
+ * Crea/sobrescribe un documento en una subcolección con ID específico.
+ */
+export async function setDocumentWithIdInSubcollection<T extends Record<string, unknown>>(
+  parentCollection: string,
+  parentId: string,
+  subcollectionName: string,
+  documentId: string,
+  data: T
+): Promise<void> {
+  if (!db) throw new Error("Firestore no está disponible.");
+  const createBy = getCurrentUserEmail();
+  await setDoc(
+    doc(db, parentCollection, parentId, subcollectionName, documentId),
+    { ...data, createdAt: serverTimestamp(), createBy },
+    { merge: false }
+  );
+}
+
+/**
+ * Actualiza un documento de una subcolección (parcial).
+ */
+export async function updateDocumentInSubcollection<T extends Record<string, unknown>>(
+  parentCollection: string,
+  parentId: string,
+  subcollectionName: string,
+  documentId: string,
+  data: Partial<T>
+): Promise<void> {
+  if (!db) throw new Error("Firestore no está disponible.");
+  const updateBy = getCurrentUserEmail();
+  const cleanData = stripUndefined(data) as Record<string, unknown>;
+  await updateDoc(
+    doc(db, parentCollection, parentId, subcollectionName, documentId),
+    { ...cleanData, updateAt: serverTimestamp(), updateBy }
+  );
+}
+
+/**
+ * Elimina un documento de una subcolección.
+ */
+export async function deleteDocumentFromSubcollection(
+  parentCollection: string,
+  parentId: string,
+  subcollectionName: string,
+  documentId: string
+): Promise<void> {
+  if (!db) throw new Error("Firestore no está disponible.");
+  await deleteDoc(doc(db, parentCollection, parentId, subcollectionName, documentId));
+}
+
+/**
+ * Colección anidada a 3 niveles: parentCollection/parentId/sub1/subId/sub2
+ * Ej: trips/tripId/tripStops/stopId/evidence
+ */
+function nestedCollectionRef(
+  parentCollection: string,
+  parentId: string,
+  sub1: string,
+  subId: string,
+  sub2: string
+) {
+  if (!db) throw new Error("Firestore no está disponible.");
+  return collection(db, parentCollection, parentId, sub1, subId, sub2);
+}
+
+export async function getNestedSubcollection<T = DocumentData>(
+  parentCollection: string,
+  parentId: string,
+  sub1: string,
+  subId: string,
+  sub2: string
+): Promise<({ id: string } & T)[]> {
+  const snapshot = await getDocs(
+    nestedCollectionRef(parentCollection, parentId, sub1, subId, sub2)
+  );
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as { id: string } & T));
+}
+
+export async function addDocumentToNestedSubcollection<T>(
+  parentCollection: string,
+  parentId: string,
+  sub1: string,
+  subId: string,
+  sub2: string,
+  data: T
+): Promise<string> {
+  if (!db) throw new Error("Firestore no está disponible.");
+  const createBy = getCurrentUserEmail();
+  const ref = await addDoc(
+    nestedCollectionRef(parentCollection, parentId, sub1, subId, sub2),
+    { ...data, createdAt: serverTimestamp(), createBy }
+  );
+  return ref.id;
+}
+
+export async function setDocumentWithIdInNestedSubcollection<T extends Record<string, unknown>>(
+  parentCollection: string,
+  parentId: string,
+  sub1: string,
+  subId: string,
+  sub2: string,
+  documentId: string,
+  data: T
+): Promise<void> {
+  if (!db) throw new Error("Firestore no está disponible.");
+  const createBy = getCurrentUserEmail();
+  await setDoc(
+    doc(db, parentCollection, parentId, sub1, subId, sub2, documentId),
+    { ...data, createdAt: serverTimestamp(), createBy },
+    { merge: false }
+  );
+}
+
+export async function deleteDocumentFromNestedSubcollection(
+  parentCollection: string,
+  parentId: string,
+  sub1: string,
+  subId: string,
+  sub2: string,
+  documentId: string
+): Promise<void> {
+  if (!db) throw new Error("Firestore no está disponible.");
+  await deleteDoc(doc(db, parentCollection, parentId, sub1, subId, sub2, documentId));
+}
