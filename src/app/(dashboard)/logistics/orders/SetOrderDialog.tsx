@@ -33,6 +33,7 @@ export default function SetOrderDialog({
   const router = useRouter();
   const isEdit = !!orderId;
   const [clients, setClients] = useState<ClientRecord[]>([]);
+  const [code, setCode] = useState<string>("");
   const [clientId, setClientId] = useState<string>("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [latitude, setLatitude] = useState<string>("");
@@ -54,6 +55,7 @@ export default function SetOrderDialog({
     setError(null);
     clientService.list().then(setClients).catch(() => setClients([]));
     if (!orderId) {
+      setCode("");
       setClientId("");
       setDeliveryAddress("");
       setLatitude("");
@@ -74,6 +76,7 @@ export default function SetOrderDialog({
           setError("Pedido no encontrado.");
           return;
         }
+        setCode(data.code ?? "");
         setClientId(data.clientId ?? "");
         setDeliveryAddress(data.deliveryAddress ?? "");
         setLatitude(String(data.location?.latitude ?? ""));
@@ -96,6 +99,7 @@ export default function SetOrderDialog({
     try {
       const clientName = selected.commercialName?.trim() || selected.businessName?.trim() || selected.code || "";
       const payload = {
+        code: code.trim(),
         clientId: selected.id,
         client: clientName,
         deliveryAddress: deliveryAddress.trim(),
@@ -145,6 +149,15 @@ export default function SetOrderDialog({
               {error}
             </div>
           )}
+          <div className="flex flex-col gap-2">
+            <label className="font-medium text-zinc-700 dark:text-zinc-300">Código</label>
+            <InputText
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="PED-001"
+              className="w-full"
+            />
+          </div>
           <div className="flex flex-col gap-2">
             <label className="font-medium text-zinc-700 dark:text-zinc-300">Cliente</label>
             <Dropdown

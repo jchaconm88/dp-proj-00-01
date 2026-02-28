@@ -3,7 +3,7 @@
 import {
   getDocument,
   getCollection,
-  createDocumentWithId,
+  addDocument,
   updateDocument,
   deleteDocument,
   deleteManyDocuments,
@@ -28,18 +28,27 @@ export type TripStopStatus = "pending" | "arrived" | "completed" | "skipped";
 
 export interface TripRecord {
   id: string;
+  code: string;
   routeId: string;
+  routeCode: string;
   driverId: string;
+  /** Conductor (denormalizado): licenseNo - lastName firstName */
+  driver: string;
   vehicleId: string;
+  /** Vehículo (denormalizado): plate */
+  vehicle: string;
   status: TripStatus;
   scheduledStart: string;
 }
 
 export interface TripAddInput {
-  id: string;
+  code: string;
   routeId: string;
+  routeCode: string;
   driverId: string;
+  driver: string;
   vehicleId: string;
+  vehicle: string;
   status: TripStatus;
   scheduledStart: string;
 }
@@ -96,9 +105,13 @@ function toTripRecord(doc: { id: string } & Record<string, unknown>): TripRecord
     : "";
   return {
     id: doc.id,
+    code: String(doc.code ?? ""),
     routeId: String(doc.routeId ?? ""),
+    routeCode: String(doc.routeCode ?? ""),
     driverId: String(doc.driverId ?? ""),
+    driver: String(doc.driver ?? ""),
     vehicleId: String(doc.vehicleId ?? ""),
+    vehicle: String(doc.vehicle ?? ""),
     status,
     scheduledStart,
   };
@@ -157,22 +170,28 @@ export async function listTrips(): Promise<TripRecord[]> {
 }
 
 export async function addTrip(data: TripAddInput): Promise<string> {
-  const id = data.id.trim();
-  await createDocumentWithId(COLLECTION, id, {
+  return addDocument(COLLECTION, {
+    code: data.code.trim(),
     routeId: data.routeId.trim(),
+    routeCode: data.routeCode.trim(),
     driverId: data.driverId.trim(),
+    driver: data.driver.trim(),
     vehicleId: data.vehicleId.trim(),
+    vehicle: data.vehicle.trim(),
     status: data.status,
     scheduledStart: data.scheduledStart.trim() || null,
   });
-  return id;
 }
 
 export async function editTrip(id: string, data: TripEditInput): Promise<void> {
   const payload: Record<string, unknown> = {};
+  if (data.code !== undefined) payload.code = data.code;
   if (data.routeId !== undefined) payload.routeId = data.routeId;
+  if (data.routeCode !== undefined) payload.routeCode = data.routeCode;
   if (data.driverId !== undefined) payload.driverId = data.driverId;
+  if (data.driver !== undefined) payload.driver = data.driver;
   if (data.vehicleId !== undefined) payload.vehicleId = data.vehicleId;
+  if (data.vehicle !== undefined) payload.vehicle = data.vehicle;
   if (data.status !== undefined) payload.status = data.status;
   if (data.scheduledStart !== undefined) payload.scheduledStart = data.scheduledStart || null;
   await updateDocument(COLLECTION, id, payload);

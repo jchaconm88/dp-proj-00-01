@@ -21,6 +21,7 @@ export interface OrderLocation {
 
 export interface OrderRecord {
   id: string;
+  code: string;
   clientId: string;
   client: string;
   deliveryAddress: string;
@@ -33,6 +34,7 @@ export interface OrderRecord {
 }
 
 export interface OrderAddInput {
+  code: string;
   clientId: string;
   client: string;
   deliveryAddress: string;
@@ -63,6 +65,7 @@ function toRecord(doc: { id: string } & Record<string, unknown>): OrderRecord {
   const location = toLocation(doc.location ?? doc.geoPoint);
   return {
     id: doc.id,
+    code: String(doc.code ?? ""),
     clientId: String(doc.clientId ?? ""),
     client: String(doc.client ?? ""),
     deliveryAddress: String(doc.deliveryAddress ?? ""),
@@ -89,6 +92,7 @@ export async function add(data: OrderAddInput): Promise<string> {
   const lat = Number(data.location.latitude) || 0;
   const lng = Number(data.location.longitude) || 0;
   return addDocument(COLLECTION, {
+    code: data.code.trim(),
     clientId: data.clientId.trim(),
     client: data.client.trim(),
     deliveryAddress: data.deliveryAddress.trim(),
@@ -103,6 +107,7 @@ export async function add(data: OrderAddInput): Promise<string> {
 
 export async function edit(id: string, data: OrderEditInput): Promise<void> {
   const payload: Record<string, unknown> = {};
+  if (data.code !== undefined) payload.code = data.code;
   if (data.clientId !== undefined) payload.clientId = data.clientId;
   if (data.client !== undefined) payload.client = data.client;
   if (data.deliveryAddress !== undefined) payload.deliveryAddress = data.deliveryAddress;

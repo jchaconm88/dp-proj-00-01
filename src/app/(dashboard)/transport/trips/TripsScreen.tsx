@@ -17,10 +17,10 @@ import {
 export type { TripRecord };
 
 const TABLE_DEF: DpTableDefColumn[] = [
-  { header: "Id", column: "id", order: 1, display: true, filter: true },
-  { header: "Ruta", column: "routeId", order: 2, display: true, filter: true },
-  { header: "Conductor", column: "driverId", order: 3, display: true, filter: true },
-  { header: "Vehículo", column: "vehicleId", order: 4, display: true, filter: true },
+  { header: "Código", column: "code", order: 1, display: true, filter: true },
+  { header: "Ruta", column: "routeCodeDisplay", order: 2, display: true, filter: true },
+  { header: "Conductor", column: "driver", order: 3, display: true, filter: true },
+  { header: "Vehículo", column: "vehicle", order: 4, display: true, filter: true },
   { header: "Estado", column: "status", order: 5, display: true, filter: true },
   { header: "Inicio programado", column: "scheduledStart", order: 6, display: true, filter: true },
 ];
@@ -33,7 +33,7 @@ export interface TripsScreenProps {
 export default function TripsScreen({ refreshTrigger, onRefresh }: TripsScreenProps) {
   const router = useRouter();
   const { requirePermissionOrAlert } = useAccessService();
-  const tableRef = useRef<DpTableRef<TripRecord>>(null);
+  const tableRef = useRef<DpTableRef<TripRecord & { routeCodeDisplay?: string }>>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -46,7 +46,14 @@ export default function TripsScreen({ refreshTrigger, onRefresh }: TripsScreenPr
     tableRef.current?.setLoading(true);
     try {
       const list = await tripService.listTrips();
-      tableRef.current?.setDatasource(list);
+      tableRef.current?.setDatasource(
+        list.map((t) => ({
+          ...t,
+          routeCodeDisplay: (t.routeCode || t.routeId || "—").trim(),
+          driver: (t.driver || t.driverId || "—").trim(),
+          vehicle: (t.vehicle || t.vehicleId || "—").trim(),
+        }))
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar viajes.");
       tableRef.current?.clearDatasource();
@@ -106,7 +113,7 @@ export default function TripsScreen({ refreshTrigger, onRefresh }: TripsScreenPr
         onDelete={deleteSelected}
         deleteDisabled={selectedCount === 0 || saving}
         loading={loading}
-        filterPlaceholder="Filtrar por id, ruta..."
+        filterPlaceholder="Filtrar por código, id, ruta..."
       />
 
       {error && (
@@ -115,10 +122,10 @@ export default function TripsScreen({ refreshTrigger, onRefresh }: TripsScreenPr
         </div>
       )}
 
-      <DpTable<TripRecord>
+      <DpTable<TripRecord & { routeCodeDisplay?: string }>
         ref={tableRef}
         tableDef={TABLE_DEF}
-        linkColumn="id"
+        linkColumn="code"
         onDetail={openEdit}
         onEdit={openEdit}
         onSelectionChange={(rows) => setSelectedCount(rows.length)}

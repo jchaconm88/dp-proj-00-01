@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as tripService from "@/services/tripService";
 import type { TripStopRecord, TripRecord } from "@/services/tripService";
-import { DpContent, DpContentHeader } from "@/components/DpContent";
+import { DpContentInfo, DpContentHeader } from "@/components/DpContent";
 import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
 import { useAccessService } from "@/hooks/useAccessService";
 import {
@@ -123,18 +123,14 @@ export default function TripStopsScreen({ tripId }: TripStopsScreenProps) {
   };
 
   const showDialog = showAdd || !!editStopId;
+  const backToTrips = () => router.push("/transport/trips");
 
   return (
-    <DpContent title={trip ? `Paradas: ${trip.id}` : "Paradas del viaje"}>
-      <div className="mb-2 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => router.push("/transport/trips")}
-          className="text-sm text-zinc-600 hover:underline dark:text-zinc-400"
-        >
-          ← Volver a viajes
-        </button>
-      </div>
+    <DpContentInfo
+      title={trip ? `Paradas: ${trip.id}` : "Paradas del viaje"}
+      backLabel="Volver a viajes"
+      onBack={backToTrips}
+    >
       <DpContentHeader
         filterValue={filterValue}
         onFilter={handleFilter}
@@ -176,6 +172,6 @@ export default function TripStopsScreen({ tripId }: TripStopsScreenProps) {
         }}
         onOpenEvidence={openEvidence}
       />
-    </DpContent>
+    </DpContentInfo>
   );
 }

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as routeService from "@/services/routeService";
 import type { StopRecord, RouteRecord } from "@/services/routeService";
-import { DpContent, DpContentHeader } from "@/components/DpContent";
+import { DpContentInfo, DpContentHeader } from "@/components/DpContent";
 import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
 import { useAccessService } from "@/hooks/useAccessService";
 import {
@@ -16,13 +16,16 @@ import {
 import SetStopDialog from "./SetStopDialog";
 
 const TABLE_DEF: DpTableDefColumn[] = [
-  { header: "Orden", column: "order", order: 1, display: true, filter: true },
-  { header: "Tipo", column: "type", order: 2, display: true, filter: true },
-  { header: "Nombre", column: "name", order: 3, display: true, filter: true },
-  { header: "Dirección", column: "address", order: 4, display: true, filter: true },
-  { header: "Lat", column: "lat", order: 5, display: true, filter: true },
-  { header: "Lng", column: "lng", order: 6, display: true, filter: true },
-  { header: "Offset min", column: "estimatedArrivalOffsetMinutes", order: 7, display: true, filter: true },
+  { header: "Pedido", column: "orderId", order: 1, display: true, filter: true },
+  { header: "Secuencia", column: "sequence", order: 2, display: true, filter: true },
+  { header: "ETA", column: "eta", order: 3, display: true, filter: true },
+  { header: "Ventana", column: "arrivalWindowStr", order: 4, display: true, filter: true },
+  { header: "Estado", column: "status", order: 5, display: true, filter: true },
+  { header: "Tipo", column: "type", order: 6, display: true, filter: true },
+  { header: "Nombre", column: "name", order: 7, display: true, filter: true },
+  { header: "Dirección", column: "address", order: 8, display: true, filter: true },
+  { header: "Lat", column: "lat", order: 9, display: true, filter: true },
+  { header: "Lng", column: "lng", order: 10, display: true, filter: true },
 ];
 
 export interface StopsScreenProps {
@@ -32,7 +35,7 @@ export interface StopsScreenProps {
 export default function StopsScreen({ routeId }: StopsScreenProps) {
   const router = useRouter();
   const { requirePermissionOrAlert } = useAccessService();
-  const tableRef = useRef<DpTableRef<StopRecord>>(null);
+  const tableRef = useRef<DpTableRef<StopRecord & { arrivalWindowStr?: string }>>(null);
   const [route, setRoute] = useState<RouteRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +57,15 @@ export default function StopsScreen({ routeId }: StopsScreenProps) {
     tableRef.current?.setLoading(true);
     try {
       const list = await routeService.listStops(routeId);
-      tableRef.current?.setDatasource(list);
+      tableRef.current?.setDatasource(
+        list.map((s) => ({
+          ...s,
+          arrivalWindowStr:
+            s.arrivalWindowStart || s.arrivalWindowEnd
+              ? `${s.arrivalWindowStart || "—"} - ${s.arrivalWindowEnd || "—"}`
+              : "—",
+        }))
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar paradas.");
       tableRef.current?.clearDatasource();
@@ -119,18 +130,14 @@ export default function StopsScreen({ routeId }: StopsScreenProps) {
   };
 
   const showDialog = showAdd || !!editStopId;
+  const backToRoutes = () => router.push("/transport/routes");
 
   return (
-    <DpContent title={route ? `Paradas: ${route.name}` : "Paradas"}>
-      <div className="mb-2 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => router.push("/transport/routes")}
-          className="text-sm text-zinc-600 hover:underline dark:text-zinc-400"
-        >
-          ← Volver a rutas
-        </button>
-      </div>
+    <DpContentInfo
+      title={route ? `Paradas: ${route.name}` : "Paradas"}
+      backLabel="Volver a rutas"
+      onBack={backToRoutes}
+    >
       <DpContentHeader
         filterValue={filterValue}
         onFilter={handleFilter}
@@ -148,7 +155,7 @@ export default function StopsScreen({ routeId }: StopsScreenProps) {
         </div>
       )}
 
-      <DpTable<StopRecord>
+      <DpTable<StopRecord & { arrivalWindowStr?: string }>
         ref={tableRef}
         tableDef={TABLE_DEF}
         linkColumn="name"
@@ -171,6 +178,6 @@ export default function StopsScreen({ routeId }: StopsScreenProps) {
           setEditStopId(null);
         }}
       />
-    </DpContent>
+    </DpContentInfo>
   );
 }

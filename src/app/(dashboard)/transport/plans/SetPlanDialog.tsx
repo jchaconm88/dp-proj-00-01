@@ -33,6 +33,7 @@ export default function SetPlanDialog({
 }: SetPlanDialogProps) {
   const router = useRouter();
   const isEdit = !!planId;
+  const [code, setCode] = useState("");
   const [date, setDate] = useState("");
   const [zone, setZone] = useState("");
   const [vehicleType, setVehicleType] = useState("");
@@ -53,6 +54,7 @@ export default function SetPlanDialog({
     setError(null);
     orderService.list().then(setOrders).catch(() => setOrders([]));
     if (!planId) {
+      setCode("");
       const today = new Date().toISOString().slice(0, 10);
       setDate(today);
       setZone("");
@@ -70,6 +72,7 @@ export default function SetPlanDialog({
           setError("Plan no encontrado.");
           return;
         }
+        setCode(data.code ?? "");
         setDate(data.date ?? "");
         setZone(data.zone ?? "");
         setVehicleType(data.vehicleType ?? "");
@@ -86,6 +89,7 @@ export default function SetPlanDialog({
     setError(null);
     try {
       const payload = {
+        code: code.trim(),
         date: date.trim(),
         zone: zone.trim(),
         vehicleType: vehicleType.trim(),
@@ -107,7 +111,7 @@ export default function SetPlanDialog({
   };
 
   const orderOptions = orders.map((o) => ({
-    label: `${o.client} — ${o.deliveryAddress}`,
+    label: `${(o.code || o.id).trim()} — ${o.client} — ${o.deliveryAddress}`,
     value: o.id,
   }));
 
@@ -134,6 +138,15 @@ export default function SetPlanDialog({
             </div>
           )}
 
+          <div className="flex flex-col gap-2">
+            <label className="font-medium text-zinc-700 dark:text-zinc-300">Código</label>
+            <InputText
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="plan_20260226_LIM01"
+              className="w-full"
+            />
+          </div>
           <div className="flex flex-col gap-2">
             <label className="font-medium text-zinc-700 dark:text-zinc-300">Fecha</label>
             <InputText

@@ -10,7 +10,9 @@ import * as tripService from "@/services/tripService";
 import type { TripStatus } from "@/services/tripService";
 import * as routeService from "@/services/routeService";
 import * as driverService from "@/services/driverService";
+import type { DriverRecord } from "@/services/driverService";
 import * as vehicleService from "@/services/vehicleService";
+import type { VehicleRecord } from "@/services/vehicleService";
 
 export interface SetTripDialogProps {
   visible: boolean;
@@ -32,15 +34,18 @@ export default function SetTripDialog({
 }: SetTripDialogProps) {
   const router = useRouter();
   const isEdit = !!tripId;
-  const [id, setId] = useState("");
+  const [code, setCode] = useState("");
   const [routeId, setRouteId] = useState<string | null>(null);
+  const [routeCode, setRouteCode] = useState("");
   const [driverId, setDriverId] = useState<string | null>(null);
+  const [driver, setDriver] = useState("");
   const [vehicleId, setVehicleId] = useState<string | null>(null);
+  const [vehicle, setVehicle] = useState("");
   const [status, setStatus] = useState<TripStatus>("scheduled");
   const [scheduledStart, setScheduledStart] = useState("");
-  const [routes, setRoutes] = useState<{ id: string; name: string }[]>([]);
-  const [drivers, setDrivers] = useState<{ id: string; label: string }[]>([]);
-  const [vehicles, setVehicles] = useState<{ id: string; label: string }[]>([]);
+  const [routes, setRoutes] = useState<routeService.RouteRecord[]>([]);
+  const [drivers, setDrivers] = useState<DriverRecord[]>([]);
+  const [vehicles, setVehicles] = useState<VehicleRecord[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,14 +56,17 @@ export default function SetTripDialog({
   useEffect(() => {
     if (!visible) return;
     setError(null);
-    routeService.listRoutes().then((list) => setRoutes(list.map((r) => ({ id: r.id, name: r.name })))).catch(() => setRoutes([]));
-    driverService.list().then((list) => setDrivers(list.map((d) => ({ id: d.id, label: `${d.firstName} ${d.lastName} (${d.id})` })))).catch(() => setDrivers([]));
-    vehicleService.list().then((list) => setVehicles(list.map((v) => ({ id: v.id, label: `${v.plate} - ${v.brand} ${v.model} (${v.id})` })))).catch(() => setVehicles([]));
+    routeService.listRoutes().then(setRoutes).catch(() => setRoutes([]));
+    driverService.list().then(setDrivers).catch(() => setDrivers([]));
+    vehicleService.list().then(setVehicles).catch(() => setVehicles([]));
     if (!tripId) {
-      setId("");
+      setCode("");
       setRouteId(null);
+      setRouteCode("");
       setDriverId(null);
+      setDriver("");
       setVehicleId(null);
+      setVehicle("");
       setStatus("scheduled");
       setScheduledStart("");
       setLoading(false);
@@ -72,10 +80,13 @@ export default function SetTripDialog({
           setError("Viaje no encontrado.");
           return;
         }
-        setId(data.id ?? "");
+        setCode(data.code ?? "");
         setRouteId(data.routeId || null);
+        setRouteCode(data.routeCode ?? "");
         setDriverId(data.driverId || null);
+        setDriver(data.driver ?? "");
         setVehicleId(data.vehicleId || null);
+        setVehicle(data.vehicle ?? "");
         setStatus(data.status ?? "scheduled");
         setScheduledStart(data.scheduledStart ? data.scheduledStart.slice(0, 16) : "");
       })
@@ -83,23 +94,38 @@ export default function SetTripDialog({
       .finally(() => setLoading(false));
   }, [visible, tripId]);
 
+  // Rellenar driver/vehicle desde listas si al editar venían vacíos (viajes antiguos)
+  useEffect(() => {
+    if (!driverId || driver) return;
+    const d = drivers.find((x) => x.id === driverId);
+    if (d) setDriver(`${(d.licenseNo || "").trim()} - ${(d.lastName || "").trim()} ${(d.firstName || "").trim()}`.trim());
+  }, [driverId, driver, drivers]);
+  useEffect(() => {
+    if (!vehicleId || vehicle) return;
+    const v = vehicles.find((x) => x.id === vehicleId);
+    if (v) setVehicle((v.plate || "").trim());
+  }, [vehicleId, vehicle, vehicles]);
+
   const save = async () => {
     if (!routeId || !driverId || !vehicleId) return;
-    if (!isEdit && !id.trim()) return;
     setSaving(true);
     setError(null);
     try {
       const payload = {
+        code: code.trim(),
         routeId,
+        routeCode,
         driverId,
+        driver,
         vehicleId,
+        vehicle,
         status,
         scheduledStart: scheduledStart.trim() || "",
       };
       if (tripId) {
         await tripService.editTrip(tripId, payload);
       } else {
-        await tripService.addTrip({ id: id.trim(), ...payload });
+        await tripService.addTrip(payload);
       }
       onSuccess?.();
       hide();
@@ -114,10 +140,38 @@ export default function SetTripDialog({
     if (tripId) router.push(`/transport/trips/${encodeURIComponent(tripId)}/trip-stops`);
   };
 
-  const routeOptions = routes.map((r) => ({ label: `${r.name} (${r.id})`, value: r.id }));
-  const driverOptions = drivers.map((d) => ({ label: d.label, value: d.id }));
-  const vehicleOptions = vehicles.map((v) => ({ label: v.label, value: v.id }));
-  const valid = !!routeId && !!driverId && !!vehicleId && (isEdit || id.trim());
+  const onRouteChange = (value: string) => {
+    setRouteId(value);
+    const r = routes.find((x) => x.id === value);
+    if (r) setRouteCode(r.code ?? "");
+  };
+
+  const onDriverChange = (value: string) => {
+    const id = value ?? "";
+    setDriverId(id);
+    const d = drivers.find((x) => x.id === id);
+    if (d) setDriver(`${(d.licenseNo || "").trim()} - ${(d.lastName || "").trim()} ${(d.firstName || "").trim()}`.trim());
+    else setDriver("");
+  };
+
+  const onVehicleChange = (value: string) => {
+    const id = value ?? "";
+    setVehicleId(id);
+    const v = vehicles.find((x) => x.id === id);
+    if (v) setVehicle((v.plate || "").trim());
+    else setVehicle("");
+  };
+
+  const routeOptions = [
+    { label: "— Sin ruta —", value: "" },
+    ...routes.map((r) => ({ label: `${r.name} (${r.code || r.id})`, value: r.id })),
+  ];
+  const driverOptions = drivers.map((d) => ({
+    label: `${(d.licenseNo || "").trim()} - ${(d.lastName || "").trim()} ${(d.firstName || "").trim()}`.trim() || d.id,
+    value: d.id,
+  }));
+  const vehicleOptions = vehicles.map((v) => ({ label: (v.plate || "").trim() || v.id, value: v.id }));
+  const valid = !!routeId && !!driverId && !!vehicleId;
 
   return (
     <Dialog
@@ -139,23 +193,21 @@ export default function SetTripDialog({
               {error}
             </div>
           )}
-          {!isEdit && (
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Id del viaje</label>
-              <InputText
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-                placeholder="TRIP-001"
-                className="w-full font-mono"
-              />
-            </div>
-          )}
+          <div className="flex flex-col gap-2">
+            <label className="font-medium text-zinc-700 dark:text-zinc-300">Código</label>
+            <InputText
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="TRIP-001"
+              className="w-full"
+            />
+          </div>
           <div className="flex flex-col gap-2">
             <label className="font-medium text-zinc-700 dark:text-zinc-300">Ruta</label>
             <Dropdown
               value={routeId}
               options={routeOptions}
-              onChange={(e) => setRouteId(e.value)}
+              onChange={(e) => onRouteChange(e.value ?? "")}
               placeholder="Seleccionar ruta"
               className="w-full"
             />
@@ -165,8 +217,11 @@ export default function SetTripDialog({
             <Dropdown
               value={driverId}
               options={driverOptions}
-              onChange={(e) => setDriverId(e.value)}
+              optionLabel="label"
+              optionValue="value"
+              onChange={(e) => onDriverChange(e.value ?? "")}
               placeholder="Seleccionar conductor"
+              filter
               className="w-full"
             />
           </div>
@@ -175,8 +230,11 @@ export default function SetTripDialog({
             <Dropdown
               value={vehicleId}
               options={vehicleOptions}
-              onChange={(e) => setVehicleId(e.value)}
+              optionLabel="label"
+              optionValue="value"
+              onChange={(e) => onVehicleChange(e.value ?? "")}
               placeholder="Seleccionar vehículo"
+              filter
               className="w-full"
             />
           </div>

@@ -23,3 +23,4 @@ export const MODULE_ROUTE = "route";
 export const MODULE_TRIP = "trip";
 export const MODULE_ORDER = "order";
 export const MODULE_PLAN = "plan";
+export const MODULE_TRANSPORT_CONTRACT = "transport-contract";

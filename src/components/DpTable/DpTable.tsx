@@ -1,6 +1,6 @@
 "use client";
 
-import {
+import React, {
   forwardRef,
   useCallback,
   useEffect,
@@ -13,6 +13,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import type { DpTableDefColumn, DpTableRef, DpTableRow } from "./types";
+import DpTColumn from "./DpTColumn";
 
 const DEFAULT_PAGE_SIZES = [5, 10, 25];
 
@@ -37,12 +38,20 @@ export interface DpTableProps<T extends DpTableRow> {
   emptyFilterMessage?: string;
   /** Callback cuando cambia la selección */
   onSelectionChange?: (selectedRows: T[]) => void;
+  /** Columnas personalizadas (DpTColumn) para redefinir el contenido de celdas por nombre */
+  children?: React.ReactNode;
 }
 
 function getCellValue(row: Record<string, unknown>, columnKey: string): unknown {
   const value = row[columnKey];
   if (Array.isArray(value)) return value.join(", ");
   return value ?? "—";
+}
+
+function isDpTColumnChild(
+  child: React.ReactNode
+): child is React.ReactElement<{ name: string; children: (row: unknown) => React.ReactNode }> {
+  return React.isValidElement(child) && child.type === DpTColumn;
 }
 
 function DpTableInner<T extends DpTableRow>(
@@ -57,6 +66,7 @@ function DpTableInner<T extends DpTableRow>(
     emptyMessage = "No hay datos.",
     emptyFilterMessage = "No hay resultados para el filtro.",
     onSelectionChange,
+    children,
   }: DpTableProps<T>,
   ref: React.ForwardedRef<DpTableRef<T>>
 ) {
@@ -194,6 +204,26 @@ function DpTableInner<T extends DpTableRow>(
     [onEdit]
   );
 
+  const columnRenderers = useMemo(() => {
+    const map: Record<string, (row: T) => React.ReactNode> = {};
+    React.Children.forEach(children, (child) => {
+      if (isDpTColumnChild(child)) {
+        const { name, children: renderFn } = child.props;
+        if (name && typeof renderFn === "function") map[name] = renderFn as (row: T) => React.ReactNode;
+      }
+    });
+    return map;
+  }, [children]);
+
+  const bodyCell = useCallback(
+    (row: T, col: DpTableDefColumn) => {
+      const custom = columnRenderers[col.column];
+      if (custom) return custom(row);
+      return bodyLink(row, col);
+    },
+    [columnRenderers, bodyLink]
+  );
+
   return (
     <div className="space-y-4">
       <DataTable
@@ -224,18 +254,19 @@ function DpTableInner<T extends DpTableRow>(
           />
         )}
         {columns.map((col) => {
-          const isLinkCol = linkColumn === col.column && onDetail;
+          const hasCustomBody = !!columnRenderers[col.column];
+          const isLinkCol = !hasCustomBody && linkColumn === col.column && onDetail;
           return (
             <Column
               key={col.column}
-              field={isLinkCol ? undefined : col.column}
+              field={hasCustomBody || isLinkCol ? undefined : col.column}
               sortField={col.column}
               header={col.header}
               body={(arg: T | { rowData: T }) => {
                 const rowData = arg != null && typeof arg === "object" && "rowData" in arg
                   ? (arg as { rowData: T }).rowData
                   : (arg as T);
-                return bodyLink(rowData, col);
+                return bodyCell(rowData, col);
               }}
             />
           );

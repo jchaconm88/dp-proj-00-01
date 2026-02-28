@@ -64,7 +64,7 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userName, setUserName] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set(["Sistema"]));
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
 
   const themes = [
     { name: 'Claro', code: 'light' },
@@ -151,6 +151,34 @@ export default function DashboardShell({ children, menu, appTitle = "ngx-admin" 
   }, [menu, accessUser]);
 
   const sections = useMemo(() => menuToSections(filteredMenu), [filteredMenu]);
+
+  /** Devuelve el título del ítem con hijos que contiene la ruta actual (solo ese debe estar abierto). */
+  const activeMenuTitle = useMemo(() => {
+    let best: string | null = null;
+    let bestLen = 0;
+    for (const section of sections) {
+      for (const item of section.items) {
+        if (!item.children?.length) continue;
+        for (const child of item.children) {
+          const link = (child.link ?? "").trim();
+          if (!link || link === "#") continue;
+          const exact = pathname === link;
+          const prefix = pathname.startsWith(link + "/");
+          if (exact || prefix) {
+            if (link.length > bestLen) {
+              bestLen = link.length;
+              best = item.title;
+            }
+          }
+        }
+      }
+    }
+    return best;
+  }, [sections, pathname]);
+
+  useEffect(() => {
+    if (activeMenuTitle) setExpandedKeys(new Set([activeMenuTitle]));
+  }, [activeMenuTitle]);
 
   if (loading) {
     return (

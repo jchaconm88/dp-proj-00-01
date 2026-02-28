@@ -17,11 +17,12 @@ import {
 export type { PlanRecord };
 
 const TABLE_DEF: DpTableDefColumn[] = [
-  { header: "Fecha", column: "date", order: 1, display: true, filter: true },
-  { header: "Zona", column: "zone", order: 2, display: true, filter: true },
-  { header: "Tipo vehículo", column: "vehicleType", order: 3, display: true, filter: true },
-  { header: "Pedidos", column: "orderIdsStr", order: 4, display: true, filter: true },
-  { header: "Estado", column: "status", order: 5, display: true, filter: true },
+  { header: "Código", column: "code", order: 1, display: true, filter: true },
+  { header: "Fecha", column: "date", order: 2, display: true, filter: true },
+  { header: "Zona", column: "zone", order: 3, display: true, filter: true },
+  { header: "Tipo vehículo", column: "vehicleType", order: 4, display: true, filter: true },
+  { header: "Pedidos", column: "orderIdsStr", order: 5, display: true, filter: true },
+  { header: "Estado", column: "status", order: 6, display: true, filter: true },
 ];
 
 export interface PlansScreenProps {

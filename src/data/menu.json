@@ -116,6 +116,14 @@
     "icon": "truck",
     "children": [
       {
+        "title": "Contratos",
+        "link": "/transport/transport-contracts",
+        "permission": [
+          "view",
+          "transport-contract"
+        ]
+      },
+      {
         "title": "Vehículos",
         "link": "/transport/vehicles",
         "permission": [

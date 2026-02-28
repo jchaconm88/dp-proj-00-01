@@ -17,13 +17,14 @@ import {
 export type { OrderRecord };
 
 const TABLE_DEF: DpTableDefColumn[] = [
-  { header: "Cliente", column: "client", order: 1, display: true, filter: true },
-  { header: "Dirección entrega", column: "deliveryAddress", order: 2, display: true, filter: true },
-  { header: "Ubicación", column: "locationStr", order: 3, display: true, filter: true },
-  { header: "Ventana", column: "windowStr", order: 4, display: true, filter: true },
-  { header: "Peso", column: "weight", order: 5, display: true, filter: true },
-  { header: "Volumen", column: "volume", order: 6, display: true, filter: true },
-  { header: "Estado", column: "status", order: 7, display: true, filter: true },
+  { header: "Código", column: "code", order: 1, display: true, filter: true },
+  { header: "Cliente", column: "client", order: 2, display: true, filter: true },
+  { header: "Dirección entrega", column: "deliveryAddress", order: 3, display: true, filter: true },
+  { header: "Ubicación", column: "locationStr", order: 4, display: true, filter: true },
+  { header: "Ventana", column: "windowStr", order: 5, display: true, filter: true },
+  { header: "Peso", column: "weight", order: 6, display: true, filter: true },
+  { header: "Volumen", column: "volume", order: 7, display: true, filter: true },
+  { header: "Estado", column: "status", order: 8, display: true, filter: true },
 ];
 
 export interface OrdersScreenProps {

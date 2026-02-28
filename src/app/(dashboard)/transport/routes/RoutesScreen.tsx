@@ -17,11 +17,12 @@ import {
 export type { RouteRecord };
 
 const TABLE_DEF: DpTableDefColumn[] = [
-  { header: "Nombre", column: "name", order: 1, display: true, filter: true },
-  { header: "Código", column: "code", order: 2, display: true, filter: true },
-  { header: "Km estimados", column: "totalEstimatedKm", order: 3, display: true, filter: true },
-  { header: "Horas estimadas", column: "totalEstimatedHours", order: 4, display: true, filter: true },
-  { header: "Activo", column: "active", order: 5, display: true, filter: true },
+  { header: "Código", column: "code", order: 1, display: true, filter: true },
+  { header: "Nombre", column: "name", order: 2, display: true, filter: true },
+  { header: "Plan", column: "planCodeDisplay", order: 3, display: true, filter: true },
+  { header: "Km estimados", column: "totalEstimatedKm", order: 4, display: true, filter: true },
+  { header: "Horas estimadas", column: "totalEstimatedHours", order: 5, display: true, filter: true },
+  { header: "Activo", column: "active", order: 6, display: true, filter: true },
 ];
 
 export interface RoutesScreenProps {
@@ -32,7 +33,7 @@ export interface RoutesScreenProps {
 export default function RoutesScreen({ refreshTrigger, onRefresh }: RoutesScreenProps) {
   const router = useRouter();
   const { requirePermissionOrAlert } = useAccessService();
-  const tableRef = useRef<DpTableRef<RouteRecord>>(null);
+  const tableRef = useRef<DpTableRef<RouteRecord & { planCodeDisplay?: string }>>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -44,8 +45,13 @@ export default function RoutesScreen({ refreshTrigger, onRefresh }: RoutesScreen
     setError(null);
     tableRef.current?.setLoading(true);
     try {
-      const list = await routeService.listRoutes();
-      tableRef.current?.setDatasource(list);
+      const routes = await routeService.listRoutes();
+      tableRef.current?.setDatasource(
+        routes.map((r) => ({
+          ...r,
+          planCodeDisplay: (r.planCode || r.planId || "—").trim(),
+        }))
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar rutas.");
       tableRef.current?.clearDatasource();
@@ -114,10 +120,10 @@ export default function RoutesScreen({ refreshTrigger, onRefresh }: RoutesScreen
         </div>
       )}
 
-      <DpTable<RouteRecord>
+      <DpTable<RouteRecord & { planCodeDisplay?: string }>
         ref={tableRef}
         tableDef={TABLE_DEF}
-        linkColumn="name"
+        linkColumn="code"
         onDetail={openEdit}
         onEdit={openEdit}
         onSelectionChange={(rows) => setSelectedCount(rows.length)}

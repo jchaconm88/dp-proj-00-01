@@ -4,9 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { Checkbox } from "primereact/checkbox";
 import * as routeService from "@/services/routeService";
+import * as planService from "@/services/planService";
+import type { PlanRecord } from "@/services/planService";
 
 export interface SetRouteDialogProps {
   visible: boolean;
@@ -23,6 +26,9 @@ export default function SetRouteDialog({
   const isEdit = !!routeId;
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [plans, setPlans] = useState<PlanRecord[]>([]);
+  const [planId, setPlanId] = useState<string>("");
+  const [planCode, setPlanCode] = useState<string>("");
   const [totalEstimatedKm, setTotalEstimatedKm] = useState<string>("");
   const [totalEstimatedHours, setTotalEstimatedHours] = useState<string>("");
   const [active, setActive] = useState(true);
@@ -36,9 +42,12 @@ export default function SetRouteDialog({
   useEffect(() => {
     if (!visible) return;
     setError(null);
+    planService.list().then(setPlans).catch(() => setPlans([]));
     if (!routeId) {
       setName("");
       setCode("");
+      setPlanId("");
+      setPlanCode("");
       setTotalEstimatedKm("");
       setTotalEstimatedHours("");
       setActive(true);
@@ -55,6 +64,8 @@ export default function SetRouteDialog({
         }
         setName(data.name ?? "");
         setCode(data.code ?? "");
+        setPlanId(data.planId ?? "");
+        setPlanCode(data.planCode ?? "");
         setTotalEstimatedKm(String(data.totalEstimatedKm ?? ""));
         setTotalEstimatedHours(String(data.totalEstimatedHours ?? ""));
         setActive(data.active ?? true);
@@ -63,14 +74,24 @@ export default function SetRouteDialog({
       .finally(() => setLoading(false));
   }, [visible, routeId]);
 
+  // Al cargar planes, si ya hay planId (edición) rellenar planCode si estaba vacío
+  // useEffect(() => {
+  //   if (!planId || plans.length === 0) return;
+  //   const p = plans.find((x) => x.id === planId);
+  //   if (p) setPlanCode((prev) => (prev ? prev : (p.code || p.id).trim()));
+  // }, [planId, plans]);
+
   const save = async () => {
     if (!name.trim() || !code.trim()) return;
     setSaving(true);
     setError(null);
     try {
+      console.log("planCode: ", planCode);  
       const payload = {
         name: name.trim(),
         code: code.trim(),
+        planId: planId.trim(),
+        planCode: planId.trim() ? planCode.trim() : "",
         totalEstimatedKm: Number(totalEstimatedKm) || 0,
         totalEstimatedHours: Number(totalEstimatedHours) || 0,
         active,
@@ -93,7 +114,22 @@ export default function SetRouteDialog({
     if (routeId) router.push(`/transport/routes/${encodeURIComponent(routeId)}/stops`);
   };
 
+  const planOptions = [
+    { label: "— Sin plan —", value: "" },
+    ...plans.map((p) => ({
+      label: `${(p.code || p.id).trim()} — ${p.date} — ${p.zone}`,
+      value: p.id,
+    })),
+  ];
+
   const valid = name.trim() && code.trim();
+  const onPlanChange = (value: string) => {
+    const id = value ?? "";
+    setPlanId(id);
+    const p = plans.find((x) => x.id === id);
+    console.log("p: ", p);
+    setPlanCode(p ? ((p.code || p.id).trim()) : "");
+  };
 
   return (
     <Dialog
@@ -130,6 +166,19 @@ export default function SetRouteDialog({
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="LIM-ICA-NAZ-ARE"
+              className="w-full"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="font-medium text-zinc-700 dark:text-zinc-300">Plan</label>
+            <Dropdown
+              value={planId}
+              options={planOptions}
+              optionLabel="label"
+              optionValue="value"
+              onChange={(e) => onPlanChange(e.value ?? "")}
+              placeholder="Seleccione un plan (opcional)"
+              filter
               className="w-full"
             />
           </div>

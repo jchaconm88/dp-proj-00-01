@@ -15,6 +15,7 @@ export type PlanStatus = "draft" | "confirmed" | "in_progress" | "completed" | "
 
 export interface PlanRecord {
   id: string;
+  code: string;
   date: string;
   zone: string;
   vehicleType: string;
@@ -23,6 +24,7 @@ export interface PlanRecord {
 }
 
 export interface PlanAddInput {
+  code: string;
   date: string;
   zone: string;
   vehicleType: string;
@@ -52,6 +54,7 @@ function toOrderIds(v: unknown): string[] {
 function toRecord(doc: { id: string } & Record<string, unknown>): PlanRecord {
   return {
     id: doc.id,
+    code: String(doc.code ?? ""),
     date: String(doc.date ?? ""),
     zone: String(doc.zone ?? ""),
     vehicleType: String(doc.vehicleType ?? ""),
@@ -72,6 +75,7 @@ export async function list(): Promise<PlanRecord[]> {
 
 export async function add(data: PlanAddInput): Promise<string> {
   return addDocument(COLLECTION, {
+    code: data.code.trim(),
     date: data.date.trim(),
     zone: data.zone.trim(),
     vehicleType: data.vehicleType.trim(),
@@ -82,6 +86,7 @@ export async function add(data: PlanAddInput): Promise<string> {
 
 export async function edit(id: string, data: PlanEditInput): Promise<void> {
   const payload: Record<string, unknown> = {};
+  if (data.code !== undefined) payload.code = data.code;
   if (data.date !== undefined) payload.date = data.date;
   if (data.zone !== undefined) payload.zone = data.zone;
   if (data.vehicleType !== undefined) payload.vehicleType = data.vehicleType;
