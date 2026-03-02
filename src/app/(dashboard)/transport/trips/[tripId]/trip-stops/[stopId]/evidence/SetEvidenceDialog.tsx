@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as tripService from "@/services/tripService";
 
 export interface SetEvidenceDialogProps {
@@ -47,15 +46,16 @@ export default function SetEvidenceDialog({
   const valid = id.trim() && url.trim();
 
   return (
-    <Dialog
-      header="Agregar evidencia"
+    <DpContentSet
+      title="Agregar evidencia"
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       <div className="flex flex-col gap-4 pt-2">
         {error && (
@@ -63,29 +63,9 @@ export default function SetEvidenceDialog({
             {error}
           </div>
         )}
-        <div className="flex flex-col gap-2">
-          <label className="font-medium text-zinc-700 dark:text-zinc-300">Id (ej. photo01)</label>
-          <InputText
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            placeholder="photo01"
-            className="w-full font-mono text-sm"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="font-medium text-zinc-700 dark:text-zinc-300">URL</label>
-          <InputText
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://..."
-            className="w-full"
-          />
-        </div>
-        <div className="mt-2 flex justify-end gap-2">
-          <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-          <Button label={saving ? "Guardando…" : "Guardar"} onClick={save} disabled={saving || !valid} loading={saving} />
-        </div>
+        <DpInput type="input" label="Id (ej. photo01)" name="id" value={id} onChange={setId} placeholder="photo01" className="font-mono text-sm" />
+        <DpInput type="input" label="URL" name="url" value={url} onChange={setUrl} placeholder="https://..." />
       </div>
-    </Dialog>
+    </DpContentSet>
   );
 }

@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
-import { Button } from "primereact/button";
-import { Checkbox } from "primereact/checkbox";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as vehicleService from "@/services/vehicleService";
 import type { VehicleStatus } from "@/services/vehicleService";
+import { VEHICLE_STATUS, statusToSelectOptions } from "@/constants/statusOptions";
 
 export interface SetVehicleDialogProps {
   visible: boolean;
@@ -16,10 +14,7 @@ export interface SetVehicleDialogProps {
   onSuccess?: () => void;
 }
 
-const STATUS_OPTIONS: { label: string; value: VehicleStatus }[] = [
-  { label: "Disponible", value: "available" },
-  { label: "Asignado", value: "assigned" },
-];
+const VEHICLE_STATUS_OPTIONS = statusToSelectOptions(VEHICLE_STATUS);
 
 const TYPE_OPTIONS = [
   { label: "Camión", value: "truck" },
@@ -117,15 +112,16 @@ export default function SetVehicleDialog({
   const valid = plate.trim();
 
   return (
-    <Dialog
-      header={isEdit ? "Editar vehículo" : "Agregar vehículo"}
+    <DpContentSet
+      title={isEdit ? "Editar vehículo" : "Agregar vehículo"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -136,81 +132,16 @@ export default function SetVehicleDialog({
               {error}
             </div>
           )}
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Placa</label>
-            <InputText
-              value={plate}
-              onChange={(e) => setPlate(e.target.value)}
-              placeholder="ABC-123"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo</label>
-            <Dropdown
-              value={type}
-              options={TYPE_OPTIONS}
-              onChange={(e) => setType(e.value ?? "")}
-              placeholder="Seleccionar tipo"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Marca</label>
-            <InputText
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              placeholder="Volvo"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Modelo</label>
-            <InputText
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="FH16"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Capacidad (kg)</label>
-            <InputText
-              value={capacityKg}
-              onChange={(e) => setCapacityKg(e.target.value)}
-              type="number"
-              placeholder="18000"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Estado</label>
-            <Dropdown
-              value={status}
-              options={STATUS_OPTIONS}
-              onChange={(e) => setStatus(e.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Viaje actual</label>
-            <InputText
-              value={currentTripId}
-              onChange={(e) => setCurrentTripId(e.target.value)}
-              placeholder="TRIP-2026-0001"
-              className="w-full"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox inputId="active" checked={active} onChange={(e) => setActive(e.checked ?? true)} />
-            <label htmlFor="active" className="font-medium text-zinc-700 dark:text-zinc-300">Activo</label>
-          </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button label={saving ? "Guardando…" : "Guardar"} onClick={save} disabled={saving || !valid} loading={saving} />
-          </div>
+          <DpInput type="input" label="Placa" name="plate" value={plate} onChange={setPlate} placeholder="ABC-123" />
+          <DpInput type="select" label="Tipo" name="type" value={type} onChange={(v) => setType(String(v))} options={TYPE_OPTIONS} placeholder="Seleccionar tipo" />
+          <DpInput type="input" label="Marca" name="brand" value={brand} onChange={setBrand} placeholder="Volvo" />
+          <DpInput type="input" label="Modelo" name="model" value={model} onChange={setModel} placeholder="FH16" />
+          <DpInput type="number" label="Capacidad (kg)" name="capacityKg" value={capacityKg} onChange={setCapacityKg} placeholder="18000" />
+          <DpInput type="select" label="Estado" name="status" value={status} onChange={(v) => setStatus(v as VehicleStatus)} options={VEHICLE_STATUS_OPTIONS} />
+          <DpInput type="input" label="Viaje actual" name="currentTripId" value={currentTripId} onChange={setCurrentTripId} placeholder="TRIP-2026-0001" />
+          <DpInput type="check" label="Activo" name="active" value={active} onChange={setActive} />
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

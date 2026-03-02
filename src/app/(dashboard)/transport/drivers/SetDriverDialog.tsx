@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
-import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as driverService from "@/services/driverService";
 import type { RelationshipType, DriverStatus } from "@/services/driverService";
+import { DRIVER_STATUS, statusToSelectOptions } from "@/constants/statusOptions";
 import * as employeeService from "@/services/employeeService";
 import * as documentService from "@/services/documentService";
 
@@ -22,10 +21,7 @@ const RELATIONSHIP_OPTIONS: { label: string; value: RelationshipType }[] = [
   { label: "Contratista", value: "contractor" },
 ];
 
-const STATUS_OPTIONS: { label: string; value: DriverStatus }[] = [
-  { label: "Disponible", value: "available" },
-  { label: "Asignado", value: "assigned" },
-];
+const DRIVER_STATUS_OPTIONS = statusToSelectOptions(DRIVER_STATUS);
 
 export default function SetDriverDialog({
   visible,
@@ -180,15 +176,16 @@ export default function SetDriverDialog({
     (isEmployee ? !!selectedEmployeeId : !!documentId);
 
   return (
-    <Dialog
-      header={isEdit ? "Editar conductor" : "Agregar conductor"}
+    <DpContentSet
+      title={isEdit ? "Editar conductor" : "Agregar conductor"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -200,26 +197,26 @@ export default function SetDriverDialog({
             </div>
           )}
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo de vínculo</label>
-            <Dropdown
-              value={relationshipType}
-              options={RELATIONSHIP_OPTIONS}
-              onChange={(e) => onRelationshipTypeChange(e.value)}
-              placeholder="Seleccionar tipo"
-              className="w-full"
-            />
-          </div>
+          <DpInput
+            type="select"
+            label="Tipo de vínculo"
+            name="relationshipType"
+            value={relationshipType}
+            onChange={(v) => onRelationshipTypeChange(v as RelationshipType)}
+            options={RELATIONSHIP_OPTIONS}
+            placeholder="Seleccionar tipo"
+          />
 
           {isEmployee && (
             <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Empleado</label>
-              <Dropdown
-                value={selectedEmployeeId}
+              <DpInput
+                type="select"
+                label="Empleado"
+                name="employeeId"
+                value={selectedEmployeeId ?? ""}
+                onChange={(v) => setSelectedEmployeeId(v ? String(v) : null)}
                 options={employeeOptions}
-                onChange={(e) => setSelectedEmployeeId(e.value)}
                 placeholder="Seleccionar empleado"
-                className="w-full"
               />
               {lockedFromEmployee && (
                 <span className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -229,113 +226,31 @@ export default function SetDriverDialog({
             </div>
           )}
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Nombre</label>
-            <InputText
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Juan"
-              className="w-full"
-              disabled={!!lockedFromEmployee}
+          <DpInput type="input" label="Nombre" name="firstName" value={firstName} onChange={setFirstName} placeholder="Juan" disabled={!!lockedFromEmployee} />
+          <DpInput type="input" label="Apellido" name="lastName" value={lastName} onChange={setLastName} placeholder="Pérez" disabled={!!lockedFromEmployee} />
+          <DpInput type="input" label="Nº documento" name="documentNo" value={documentNo} onChange={setDocumentNo} placeholder="12345678" disabled={!!lockedFromEmployee} />
+          {isEmployee ? (
+            <DpInput type="input" label="Tipo de documento" name="documentId" value={documentId ?? ""} onChange={() => {}} disabled placeholder="Desde empleado" />
+          ) : (
+            <DpInput
+              type="select"
+              label="Tipo de documento"
+              name="documentId"
+              value={documentId ?? ""}
+              onChange={(v) => setDocumentId(v ? String(v) : null)}
+              options={documentOptions}
+              placeholder="Seleccionar documento"
             />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Apellido</label>
-            <InputText
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Pérez"
-              className="w-full"
-              disabled={!!lockedFromEmployee}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Nº documento</label>
-            <InputText
-              value={documentNo}
-              onChange={(e) => setDocumentNo(e.target.value)}
-              placeholder="12345678"
-              className="w-full"
-              disabled={!!lockedFromEmployee}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo de documento</label>
-            {isEmployee ? (
-              <InputText value={documentId ?? ""} className="w-full" disabled placeholder="Desde empleado" />
-            ) : (
-              <Dropdown
-                value={documentId}
-                options={documentOptions}
-                onChange={(e) => setDocumentId(e.value)}
-                placeholder="Seleccionar documento"
-                className="w-full"
-              />
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Teléfono</label>
-            <InputText
-              value={phoneNo}
-              onChange={(e) => setPhoneNo(e.target.value)}
-              placeholder="999999999"
-              className="w-full"
-              disabled={!!lockedFromEmployee}
-            />
-          </div>
+          )}
+          <DpInput type="input" label="Teléfono" name="phoneNo" value={phoneNo} onChange={setPhoneNo} placeholder="999999999" disabled={!!lockedFromEmployee} />
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Nº licencia</label>
-            <InputText
-              value={licenseNo}
-              onChange={(e) => setLicenseNo(e.target.value)}
-              placeholder="A3C-445566"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Categoría licencia</label>
-            <InputText
-              value={licenseCategory}
-              onChange={(e) => setLicenseCategory(e.target.value)}
-              placeholder="A3C"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Vencimiento licencia</label>
-            <InputText
-              value={licenseExpiration}
-              onChange={(e) => setLicenseExpiration(e.target.value)}
-              type="date"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Estado</label>
-            <Dropdown
-              value={status}
-              options={STATUS_OPTIONS}
-              onChange={(e) => setStatus(e.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Viaje actual</label>
-            <InputText
-              value={currentTripId}
-              onChange={(e) => setCurrentTripId(e.target.value)}
-              placeholder="TRIP-2026-0001"
-              className="w-full"
-            />
-          </div>
-
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button label={saving ? "Guardando…" : "Guardar"} onClick={save} disabled={saving || !valid} loading={saving} />
-          </div>
+          <DpInput type="input" label="Nº licencia" name="licenseNo" value={licenseNo} onChange={setLicenseNo} placeholder="A3C-445566" />
+          <DpInput type="input" label="Categoría licencia" name="licenseCategory" value={licenseCategory} onChange={setLicenseCategory} placeholder="A3C" />
+          <DpInput type="date" label="Vencimiento licencia" name="licenseExpiration" value={licenseExpiration} onChange={setLicenseExpiration} />
+          <DpInput type="select" label="Estado" name="status" value={status} onChange={(v) => setStatus(v as DriverStatus)} options={DRIVER_STATUS_OPTIONS} />
+          <DpInput type="input" label="Viaje actual" name="currentTripId" value={currentTripId} onChange={setCurrentTripId} placeholder="TRIP-2026-0001" />
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

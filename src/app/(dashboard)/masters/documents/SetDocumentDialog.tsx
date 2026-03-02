@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
-import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as documentService from "@/services/documentService";
 import * as documentTypeService from "@/services/documentTypeService";
 import type { DocumentTypeRecord } from "@/services/documentTypeService";
@@ -101,16 +99,19 @@ export default function SetDocumentDialog({
     value: dt.id,
   }));
 
+  const valid = name.trim() && selectedDocumentTypeId && (isEdit || id.trim());
+
   return (
-    <Dialog
-      header={isEdit ? "Editar documento" : "Agregar documento"}
+    <DpContentSet
+      title={isEdit ? "Editar documento" : "Agregar documento"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -121,60 +122,24 @@ export default function SetDocumentDialog({
               {error}
             </div>
           )}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setdoc-id" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Id (en la colección)
-            </label>
-            <InputText
-              id="setdoc-id"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              placeholder="Ej. dni"
-              className="w-full font-mono text-sm"
-              disabled={isEdit}
-            />
-            {isEdit && (
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                El id no se puede modificar al editar.
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setdoc-name" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Nombre
-            </label>
-            <InputText
-              id="setdoc-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ej. Documento Nacional de Identidad"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setdoc-type" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Tipo de documento
-            </label>
-            <Dropdown
-              id="setdoc-type"
-              value={selectedDocumentTypeId}
-              options={documentTypeOptions}
-              onChange={(e) => setSelectedDocumentTypeId(e.value)}
-              placeholder="Seleccionar tipo"
-              className="w-full"
-            />
-          </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button
-              label={saving ? "Guardando…" : "Guardar"}
-              onClick={save}
-              disabled={saving || !name.trim() || !selectedDocumentTypeId || (!isEdit && !id.trim())}
-              loading={saving}
-            />
-          </div>
+          <DpInput type="input" label="Id (en la colección)" name="id" value={id} onChange={setId} placeholder="Ej. dni" className="font-mono text-sm" disabled={isEdit} />
+          {isEdit && (
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              El id no se puede modificar al editar.
+            </span>
+          )}
+          <DpInput type="input" label="Nombre" name="name" value={name} onChange={setName} placeholder="Ej. Documento Nacional de Identidad" />
+          <DpInput
+            type="select"
+            label="Tipo de documento"
+            name="documentType"
+            value={selectedDocumentTypeId ?? ""}
+            onChange={(v) => setSelectedDocumentTypeId(v != null ? String(v) : null)}
+            options={documentTypeOptions}
+            placeholder="Seleccionar tipo"
+          />
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

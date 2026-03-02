@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as roleService from "@/services/roleService";
 
 export interface SetRoleDialogProps {
@@ -85,15 +84,16 @@ export default function SetRoleDialog({ visible, roleId, onSuccess }: SetRoleDia
   };
 
   return (
-    <Dialog
-      header={isEdit ? "Editar rol" : "Agregar rol"}
+    <DpContentSet
+      title={isEdit ? "Editar rol" : "Agregar rol"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!name.trim()}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -104,41 +104,10 @@ export default function SetRoleDialog({ visible, roleId, onSuccess }: SetRoleDia
               {error}
             </div>
           )}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setrole-name" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Nombre
-            </label>
-            <InputText
-              id="setrole-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ej. admin, editor"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setrole-desc" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Descripción
-            </label>
-            <InputText
-              id="setrole-desc"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Descripción del rol"
-              className="w-full"
-            />
-          </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button
-              label={saving ? "Guardando…" : "Guardar"}
-              onClick={save}
-              disabled={saving || !name.trim()}
-              loading={saving}
-            />
-          </div>
+          <DpInput type="input" label="Nombre" name="name" value={name} onChange={setName} placeholder="Ej. admin, editor" />
+          <DpInput type="input" label="Descripción" name="description" value={description} onChange={setDescription} placeholder="Descripción del rol" />
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

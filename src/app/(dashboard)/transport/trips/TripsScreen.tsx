@@ -13,6 +13,7 @@ import {
   PERMISSION_UPDATE,
   PERMISSION_DELETE,
 } from "@/constants/permissions";
+import { TRIP_STATUS } from "@/constants/statusOptions";
 
 export type { TripRecord };
 
@@ -21,8 +22,8 @@ const TABLE_DEF: DpTableDefColumn[] = [
   { header: "Ruta", column: "routeCodeDisplay", order: 2, display: true, filter: true },
   { header: "Conductor", column: "driver", order: 3, display: true, filter: true },
   { header: "Vehículo", column: "vehicle", order: 4, display: true, filter: true },
-  { header: "Estado", column: "status", order: 5, display: true, filter: true },
-  { header: "Inicio programado", column: "scheduledStart", order: 6, display: true, filter: true },
+  { header: "Estado", column: "status", order: 5, display: true, filter: true, type: "status", typeOptions: TRIP_STATUS },
+  { header: "Inicio programado", column: "scheduledStart", order: 6, display: true, filter: true, type: "datetime" },
 ];
 
 export interface TripsScreenProps {

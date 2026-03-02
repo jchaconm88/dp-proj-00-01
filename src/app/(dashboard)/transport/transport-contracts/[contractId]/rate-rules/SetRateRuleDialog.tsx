@@ -1,11 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
-import { Button } from "primereact/button";
-import { Checkbox } from "primereact/checkbox";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as contractService from "@/services/contractService";
 import type {
   RateRuleConditions,
@@ -210,115 +207,79 @@ export default function SetRateRuleDialog({
   const valid = name.trim() && (isEdit || code.trim());
 
   return (
-    <Dialog
-      header={isEdit ? "Editar regla de tarifa" : "Agregar regla de tarifa"}
+    <DpContentSet
+      title={isEdit ? "Editar regla de tarifa" : "Agregar regla de tarifa"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "36rem", maxHeight: "90vh" }}
-      contentStyle={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      blockScroll
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pt-2">
+        <>
           {error && (
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
               {error}
             </div>
           )}
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Código</label>
-            <InputText
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="LIMA_CENTRO_CALLAO_5TN"
-              className="w-full"
+          <DpInput type="input" label="Código" name="code" value={code} onChange={setCode} placeholder="LIMA_CENTRO_CALLAO_5TN" />
+          <DpInput type="input" label="Nombre" name="name" value={name} onChange={setName} placeholder="Zona Lima Centro - Callao 5TN" />
+          <DpInput type="check" label="Activo" name="active" value={active} onChange={setActive} />
+          <div className="grid grid-cols-2 gap-4">
+            <DpInput type="number" label="Prioridad" name="priority" value={priority} onChange={setPriority} />
+            <DpInput
+              type="select"
+              label="Tipo de regla"
+              name="ruleType"
+              value={ruleType}
+              onChange={(v) => setRuleType(v as RateRuleType)}
+              options={RULE_TYPE_OPTIONS}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Nombre</label>
-            <InputText
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Zona Lima Centro - Callao 5TN"
-              className="w-full"
+          <div className="grid grid-cols-2 gap-4">
+            <DpInput
+              type="select"
+              label="Tipo de cálculo"
+              name="calculationType"
+              value={calculationType}
+              onChange={(v) => setCalculationType(v as CalculationType)}
+              options={CALCULATION_TYPE_OPTIONS}
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox inputId="active" checked={active} onChange={(e) => setActive(e.checked ?? true)} />
-            <label htmlFor="active" className="font-medium text-zinc-700 dark:text-zinc-300">Activo</label>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Prioridad</label>
-              <InputText value={priority} onChange={(e) => setPriority(e.target.value)} type="number" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo de regla</label>
-              <Dropdown value={ruleType} options={RULE_TYPE_OPTIONS} onChange={(e) => setRuleType(e.value)} className="w-full" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo de cálculo</label>
-              <Dropdown
-                value={calculationType}
-                options={CALCULATION_TYPE_OPTIONS}
-                onChange={(e) => setCalculationType(e.value)}
-                className="w-full"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo de vehículo</label>
-              <InputText value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} placeholder="5TN" className="w-full" />
-            </div>
+            <DpInput type="input" label="Tipo de vehículo" name="vehicleType" value={vehicleType} onChange={setVehicleType} placeholder="5TN" />
           </div>
           <div className="rounded border border-zinc-200 p-3 dark:border-navy-600">
             <div className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Condiciones</div>
             <div className="grid grid-cols-2 gap-2">
-              <InputText value={originZone} onChange={(e) => setOriginZone(e.target.value)} placeholder="Zona origen" className="w-full text-sm" />
-              <InputText value={destinationZone} onChange={(e) => setDestinationZone(e.target.value)} placeholder="Zona destino" className="w-full text-sm" />
-              <InputText value={minWeight} onChange={(e) => setMinWeight(e.target.value)} type="number" placeholder="Peso min" className="w-full text-sm" />
-              <InputText value={maxWeight} onChange={(e) => setMaxWeight(e.target.value)} type="number" placeholder="Peso max" className="w-full text-sm" />
-              <InputText value={minDistanceKm} onChange={(e) => setMinDistanceKm(e.target.value)} type="number" placeholder="Km min" className="w-full text-sm" />
-              <InputText value={maxDistanceKm} onChange={(e) => setMaxDistanceKm(e.target.value)} type="number" placeholder="Km max" className="w-full text-sm" />
+              <DpInput type="input" label="Zona origen" name="originZone" value={originZone} onChange={setOriginZone} placeholder="Zona origen" className="text-sm" />
+              <DpInput type="input" label="Zona destino" name="destinationZone" value={destinationZone} onChange={setDestinationZone} placeholder="Zona destino" className="text-sm" />
+              <DpInput type="number" label="Peso min" name="minWeight" value={minWeight} onChange={setMinWeight} placeholder="Peso min" className="text-sm" />
+              <DpInput type="number" label="Peso max" name="maxWeight" value={maxWeight} onChange={setMaxWeight} placeholder="Peso max" className="text-sm" />
+              <DpInput type="number" label="Km min" name="minDistanceKm" value={minDistanceKm} onChange={setMinDistanceKm} placeholder="Km min" className="text-sm" />
+              <DpInput type="number" label="Km max" name="maxDistanceKm" value={maxDistanceKm} onChange={setMaxDistanceKm} placeholder="Km max" className="text-sm" />
             </div>
           </div>
           <div className="rounded border border-zinc-200 p-3 dark:border-navy-600">
             <div className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Cálculo</div>
             <div className="grid grid-cols-2 gap-2">
-              <InputText value={basePrice} onChange={(e) => setBasePrice(e.target.value)} type="number" placeholder="Precio base" className="w-full text-sm" />
-              <InputText value={pricePerKm} onChange={(e) => setPricePerKm(e.target.value)} type="number" placeholder="Precio por km" className="w-full text-sm" />
-              <InputText value={pricePerTon} onChange={(e) => setPricePerTon(e.target.value)} type="number" placeholder="Precio por ton" className="w-full text-sm" />
-              <InputText value={pricePerM3} onChange={(e) => setPricePerM3(e.target.value)} type="number" placeholder="Precio por m³" className="w-full text-sm" />
-              <InputText value={percentage} onChange={(e) => setPercentage(e.target.value)} type="number" placeholder="Porcentaje" className="w-full text-sm" />
+              <DpInput type="number" label="Precio base" name="basePrice" value={basePrice} onChange={setBasePrice} placeholder="Precio base" className="text-sm" />
+              <DpInput type="number" label="Precio por km" name="pricePerKm" value={pricePerKm} onChange={setPricePerKm} placeholder="Precio por km" className="text-sm" />
+              <DpInput type="number" label="Precio por ton" name="pricePerTon" value={pricePerTon} onChange={setPricePerTon} placeholder="Precio por ton" className="text-sm" />
+              <DpInput type="number" label="Precio por m³" name="pricePerM3" value={pricePerM3} onChange={setPricePerM3} placeholder="Precio por m³" className="text-sm" />
+              <DpInput type="number" label="Porcentaje" name="percentage" value={percentage} onChange={setPercentage} placeholder="Porcentaje" className="text-sm" />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Checkbox inputId="stackable" checked={stackable} onChange={(e) => setStackable(e.checked ?? false)} />
-            <label htmlFor="stackable" className="font-medium text-zinc-700 dark:text-zinc-300">Apilable</label>
-          </div>
+          <DpInput type="check" label="Apilable" name="stackable" value={stackable} onChange={setStackable} />
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Vigencia desde</label>
-              <InputText value={validFrom} onChange={(e) => setValidFrom(e.target.value)} type="date" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Vigencia hasta</label>
-              <InputText value={validTo} onChange={(e) => setValidTo(e.target.value)} type="date" className="w-full" />
-            </div>
+            <DpInput type="date" label="Vigencia desde" name="validFrom" value={validFrom} onChange={setValidFrom} />
+            <DpInput type="date" label="Vigencia hasta" name="validTo" value={validTo} onChange={setValidTo} />
           </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button label={saving ? "Guardando…" : "Guardar"} onClick={save} disabled={saving || !valid} loading={saving} />
-          </div>
-        </div>
+        </>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

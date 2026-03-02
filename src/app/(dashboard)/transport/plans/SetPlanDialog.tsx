@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
 import { MultiSelect } from "primereact/multiselect";
-import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as planService from "@/services/planService";
 import type { PlanStatus } from "@/services/planService";
+import { PLAN_STATUS, statusToSelectOptions } from "@/constants/statusOptions";
 import * as orderService from "@/services/orderService";
 import type { OrderRecord } from "@/services/orderService";
 
@@ -18,13 +17,7 @@ export interface SetPlanDialogProps {
   onSuccess?: () => void;
 }
 
-const STATUS_OPTIONS: { label: string; value: PlanStatus }[] = [
-  { label: "Borrador", value: "draft" },
-  { label: "Confirmado", value: "confirmed" },
-  { label: "En curso", value: "in_progress" },
-  { label: "Completado", value: "completed" },
-  { label: "Cancelado", value: "cancelled" },
-];
+const PLAN_STATUS_OPTIONS = statusToSelectOptions(PLAN_STATUS);
 
 export default function SetPlanDialog({
   visible,
@@ -118,15 +111,16 @@ export default function SetPlanDialog({
   const valid = !!date.trim() && !!zone.trim() && !!vehicleType.trim();
 
   return (
-    <Dialog
-      header={isEdit ? "Editar plan" : "Agregar plan"}
+    <DpContentSet
+      title={isEdit ? "Editar plan" : "Agregar plan"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "32rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -138,44 +132,11 @@ export default function SetPlanDialog({
             </div>
           )}
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Código</label>
-            <InputText
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="plan_20260226_LIM01"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Fecha</label>
-            <InputText
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              type="date"
-              className="w-full"
-            />
-          </div>
+          <DpInput type="input" label="Código" name="code" value={code} onChange={setCode} placeholder="plan_20260226_LIM01" />
+          <DpInput type="date" label="Fecha" name="date" value={date} onChange={setDate} />
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Zona</label>
-            <InputText
-              value={zone}
-              onChange={(e) => setZone(e.target.value)}
-              placeholder="Lima Metropolitana"
-              className="w-full"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo de vehículo</label>
-            <InputText
-              value={vehicleType}
-              onChange={(e) => setVehicleType(e.target.value)}
-              placeholder="Camión 5TN"
-              className="w-full"
-            />
-          </div>
+          <DpInput type="input" label="Zona" name="zone" value={zone} onChange={setZone} placeholder="Lima Metropolitana" />
+          <DpInput type="input" label="Tipo de vehículo" name="vehicleType" value={vehicleType} onChange={setVehicleType} placeholder="Camión 5TN" />
 
           <div className="flex flex-col gap-2">
             <label className="font-medium text-zinc-700 dark:text-zinc-300">Pedidos</label>
@@ -192,27 +153,9 @@ export default function SetPlanDialog({
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Estado</label>
-            <Dropdown
-              value={status}
-              options={STATUS_OPTIONS}
-              onChange={(e) => setStatus(e.value)}
-              className="w-full"
-            />
-          </div>
-
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button
-              label={saving ? "Guardando…" : "Guardar"}
-              onClick={save}
-              disabled={saving || !valid}
-              loading={saving}
-            />
-          </div>
+          <DpInput type="select" label="Estado" name="status" value={status} onChange={(v) => setStatus(v as PlanStatus)} options={PLAN_STATUS_OPTIONS} />
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

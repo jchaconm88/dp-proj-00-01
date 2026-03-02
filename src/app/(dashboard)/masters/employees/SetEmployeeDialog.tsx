@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
-import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as employeeService from "@/services/employeeService";
 import * as documentService from "@/services/documentService";
 
@@ -104,15 +102,16 @@ export default function SetEmployeeDialog({
   const valid = firstName.trim() && lastName.trim() && selectedDocumentId;
 
   return (
-    <Dialog
-      header={isEdit ? "Editar empleado" : "Agregar empleado"}
+    <DpContentSet
+      title={isEdit ? "Editar empleado" : "Agregar empleado"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -123,77 +122,23 @@ export default function SetEmployeeDialog({
               {error}
             </div>
           )}
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Nombre</label>
-            <InputText
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Juan"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Apellido</label>
-            <InputText
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Pérez"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Nº documento</label>
-            <InputText
-              value={documentNo}
-              onChange={(e) => setDocumentNo(e.target.value)}
-              placeholder="12345678"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo de documento</label>
-            <Dropdown
-              value={selectedDocumentId}
-              options={documentOptions}
-              onChange={(e) => setSelectedDocumentId(e.value)}
-              placeholder="Seleccionar documento"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Teléfono</label>
-            <InputText
-              value={phoneNo}
-              onChange={(e) => setPhoneNo(e.target.value)}
-              placeholder="999999999"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Salario</label>
-            <InputText
-              value={salary}
-              onChange={(e) => setSalary(e.target.value)}
-              type="number"
-              placeholder="2500"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Fecha de ingreso</label>
-            <InputText
-              value={hireDate}
-              onChange={(e) => setHireDate(e.target.value)}
-              type="date"
-              className="w-full"
-            />
-          </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button label={saving ? "Guardando…" : "Guardar"} onClick={save} disabled={saving || !valid} loading={saving} />
-          </div>
+          <DpInput type="input" label="Nombre" name="firstName" value={firstName} onChange={setFirstName} placeholder="Juan" />
+          <DpInput type="input" label="Apellido" name="lastName" value={lastName} onChange={setLastName} placeholder="Pérez" />
+          <DpInput type="input" label="Nº documento" name="documentNo" value={documentNo} onChange={setDocumentNo} placeholder="12345678" />
+          <DpInput
+            type="select"
+            label="Tipo de documento"
+            name="documentId"
+            value={selectedDocumentId ?? ""}
+            onChange={(v) => setSelectedDocumentId(v != null ? String(v) : null)}
+            options={documentOptions}
+            placeholder="Seleccionar documento"
+          />
+          <DpInput type="input" label="Teléfono" name="phoneNo" value={phoneNo} onChange={setPhoneNo} placeholder="999999999" />
+          <DpInput type="number" label="Salario" name="salary" value={salary} onChange={setSalary} placeholder="2500" />
+          <DpInput type="date" label="Fecha de ingreso" name="hireDate" value={hireDate} onChange={setHireDate} />
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

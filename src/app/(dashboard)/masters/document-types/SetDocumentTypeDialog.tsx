@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as documentTypeService from "@/services/documentTypeService";
 
 export interface SetDocumentTypeDialogProps {
@@ -81,16 +80,19 @@ export default function SetDocumentTypeDialog({
     }
   };
 
+  const valid = name.trim() && (isEdit || id.trim());
+
   return (
-    <Dialog
-      header={isEdit ? "Editar tipo de documento" : "Agregar tipo de documento"}
+    <DpContentSet
+      title={isEdit ? "Editar tipo de documento" : "Agregar tipo de documento"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -101,47 +103,24 @@ export default function SetDocumentTypeDialog({
               {error}
             </div>
           )}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setdoctype-id" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Id (en la colección)
-            </label>
-            <InputText
-              id="setdoctype-id"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              placeholder="Ej. identity"
-              className="w-full font-mono text-sm"
-              disabled={isEdit}
-            />
-            {isEdit && (
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                El id no se puede modificar al editar.
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setdoctype-name" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Nombre
-            </label>
-            <InputText
-              id="setdoctype-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ej. Identidad"
-              className="w-full"
-            />
-          </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button
-              label={saving ? "Guardando…" : "Guardar"}
-              onClick={save}
-              disabled={saving || !name.trim() || (!isEdit && !id.trim())}
-              loading={saving}
-            />
-          </div>
+          <DpInput
+            type="input"
+            label="Id (en la colección)"
+            name="id"
+            value={id}
+            onChange={setId}
+            placeholder="Ej. identity"
+            className="font-mono text-sm"
+            disabled={isEdit}
+          />
+          {isEdit && (
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              El id no se puede modificar al editar.
+            </span>
+          )}
+          <DpInput type="input" label="Nombre" name="name" value={name} onChange={setName} placeholder="Ej. Identidad" />
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

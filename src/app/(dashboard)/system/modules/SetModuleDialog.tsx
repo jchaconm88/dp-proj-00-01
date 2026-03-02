@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as moduleService from "@/services/moduleService";
 
 export interface SetModuleDialogProps {
@@ -83,15 +82,16 @@ export default function SetModuleDialog({ visible, moduleId, onSuccess }: SetMod
   };
 
   return (
-    <Dialog
-      header={isEdit ? "Editar módulo" : "Agregar módulo"}
+    <DpContentSet
+      title={isEdit ? "Editar módulo" : "Agregar módulo"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!name.trim()}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -102,45 +102,21 @@ export default function SetModuleDialog({ visible, moduleId, onSuccess }: SetMod
               {error}
             </div>
           )}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setmodule-name" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Nombre de la colección
-            </label>
-            <InputText
-              id="setmodule-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ej. user"
-              className="w-full"
-              disabled={isEdit}
-            />
-            {isEdit && (
-              <span className="text-xs text-zinc-500">El nombre no se puede modificar.</span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setmodule-desc" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Descripción
-            </label>
-            <InputText
-              id="setmodule-desc"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ej. Usuarios"
-              className="w-full"
-            />
-          </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button
-              label={saving ? "Guardando…" : "Guardar"}
-              onClick={save}
-              disabled={saving || !name.trim()}
-              loading={saving}
-            />
-          </div>
+          <DpInput
+            type="input"
+            label="Nombre de la colección"
+            name="name"
+            value={name}
+            onChange={setName}
+            placeholder="Ej. user"
+            disabled={isEdit}
+          />
+          {isEdit && (
+            <span className="text-xs text-zinc-500">El nombre no se puede modificar.</span>
+          )}
+          <DpInput type="input" label="Descripción" name="description" value={description} onChange={setDescription} placeholder="Ej. Usuarios" />
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

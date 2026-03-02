@@ -1,11 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
-import { Button } from "primereact/button";
-import { Checkbox } from "primereact/checkbox";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as clientLocationService from "@/services/clientLocationService";
 import type { LocationType } from "@/services/clientLocationService";
 
@@ -129,15 +126,16 @@ export default function SetLocationDialog({
   const valid = name.trim();
 
   return (
-    <Dialog
-      header={isEdit ? "Editar ubicación" : "Agregar ubicación"}
+    <DpContentSet
+      title={isEdit ? "Editar ubicación" : "Agregar ubicación"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "28rem", maxWidth: "95vw" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -149,76 +147,35 @@ export default function SetLocationDialog({
             </div>
           )}
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Nombre</label>
-            <InputText value={name} onChange={(e) => setName(e.target.value)} placeholder="CD Lima" className="w-full" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo</label>
-            <Dropdown value={type} options={TYPE_OPTIONS} onChange={(e) => setType(e.value)} className="w-full" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Dirección</label>
-            <InputText value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Av. Argentina 2450" className="w-full" />
-          </div>
+          <DpInput type="input" label="Nombre" name="name" value={name} onChange={setName} placeholder="CD Lima" />
+          <DpInput type="select" label="Tipo" name="type" value={type} onChange={(v) => setType(v as LocationType)} options={TYPE_OPTIONS} />
+          <DpInput type="input" label="Dirección" name="address" value={address} onChange={setAddress} placeholder="Av. Argentina 2450" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Distrito</label>
-              <InputText value={district} onChange={(e) => setDistrict(e.target.value)} placeholder="Callao" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Ciudad</label>
-              <InputText value={city} onChange={(e) => setCity(e.target.value)} placeholder="Lima" className="w-full" />
-            </div>
+            <DpInput type="input" label="Distrito" name="district" value={district} onChange={setDistrict} placeholder="Callao" />
+            <DpInput type="input" label="Ciudad" name="city" value={city} onChange={setCity} placeholder="Lima" />
           </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">País</label>
-            <InputText value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Perú" className="w-full" />
-          </div>
+          <DpInput type="input" label="País" name="country" value={country} onChange={setCountry} placeholder="Perú" />
 
           <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
             <h4 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Coordenadas</h4>
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Latitud</label>
-                <InputText value={latitude} onChange={(e) => setLatitude(e.target.value)} type="number" step="any" placeholder="-12.048" className="w-full" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Longitud</label>
-                <InputText value={longitude} onChange={(e) => setLongitude(e.target.value)} type="number" step="any" placeholder="-77.118" className="w-full" />
-              </div>
+              <DpInput type="number" label="Latitud" name="latitude" value={latitude} onChange={setLatitude} placeholder="-12.048" />
+              <DpInput type="number" label="Longitud" name="longitude" value={longitude} onChange={setLongitude} placeholder="-77.118" />
             </div>
           </div>
 
           <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
             <h4 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Ventana de entrega</h4>
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Inicio</label>
-                <InputText value={windowStart} onChange={(e) => setWindowStart(e.target.value)} type="time" className="w-full" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Fin</label>
-                <InputText value={windowEnd} onChange={(e) => setWindowEnd(e.target.value)} type="time" className="w-full" />
-              </div>
+              <DpInput type="time" label="Inicio" name="windowStart" value={windowStart} onChange={setWindowStart} />
+              <DpInput type="time" label="Fin" name="windowEnd" value={windowEnd} onChange={setWindowEnd} />
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Tiempo de servicio (min)</label>
-            <InputText value={serviceTimeMin} onChange={(e) => setServiceTimeMin(e.target.value)} type="number" placeholder="45" className="w-full" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox inputId="active" checked={active} onChange={(e) => setActive(e.checked ?? true)} />
-            <label htmlFor="active" className="font-medium text-zinc-700 dark:text-zinc-300">Activo</label>
-          </div>
-
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button label={saving ? "Guardando…" : "Guardar"} onClick={save} disabled={saving || !valid} loading={saving} />
-          </div>
+          <DpInput type="number" label="Tiempo de servicio (min)" name="serviceTimeMin" value={serviceTimeMin} onChange={setServiceTimeMin} placeholder="45" />
+          <DpInput type="check" label="Activo" name="active" value={active} onChange={setActive} />
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

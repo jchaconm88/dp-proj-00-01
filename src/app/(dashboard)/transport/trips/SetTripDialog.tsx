@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as tripService from "@/services/tripService";
 import type { TripStatus } from "@/services/tripService";
+import { TRIP_STATUS, statusToSelectOptions } from "@/constants/statusOptions";
 import * as routeService from "@/services/routeService";
 import * as driverService from "@/services/driverService";
 import type { DriverRecord } from "@/services/driverService";
@@ -20,12 +20,7 @@ export interface SetTripDialogProps {
   onSuccess?: () => void;
 }
 
-const STATUS_OPTIONS: { label: string; value: TripStatus }[] = [
-  { label: "Programado", value: "scheduled" },
-  { label: "En curso", value: "in_progress" },
-  { label: "Completado", value: "completed" },
-  { label: "Cancelado", value: "cancelled" },
-];
+const TRIP_STATUS_OPTIONS = statusToSelectOptions(TRIP_STATUS);
 
 export default function SetTripDialog({
   visible,
@@ -174,15 +169,16 @@ export default function SetTripDialog({
   const valid = !!routeId && !!driverId && !!vehicleId;
 
   return (
-    <Dialog
-      header={isEdit ? "Editar viaje" : "Agregar viaje"}
+    <DpContentSet
+      title={isEdit ? "Editar viaje" : "Agregar viaje"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -193,78 +189,43 @@ export default function SetTripDialog({
               {error}
             </div>
           )}
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Código</label>
-            <InputText
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="TRIP-001"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Ruta</label>
-            <Dropdown
-              value={routeId}
-              options={routeOptions}
-              onChange={(e) => onRouteChange(e.value ?? "")}
-              placeholder="Seleccionar ruta"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Conductor</label>
-            <Dropdown
-              value={driverId}
-              options={driverOptions}
-              optionLabel="label"
-              optionValue="value"
-              onChange={(e) => onDriverChange(e.value ?? "")}
-              placeholder="Seleccionar conductor"
-              filter
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Vehículo</label>
-            <Dropdown
-              value={vehicleId}
-              options={vehicleOptions}
-              optionLabel="label"
-              optionValue="value"
-              onChange={(e) => onVehicleChange(e.value ?? "")}
-              placeholder="Seleccionar vehículo"
-              filter
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Estado</label>
-            <Dropdown
-              value={status}
-              options={STATUS_OPTIONS}
-              onChange={(e) => setStatus(e.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Inicio programado</label>
-            <InputText
-              value={scheduledStart}
-              onChange={(e) => setScheduledStart(e.target.value)}
-              type="datetime-local"
-              className="w-full"
-            />
-          </div>
+          <DpInput type="input" label="Código" name="code" value={code} onChange={setCode} placeholder="TRIP-001" />
+          <DpInput
+            type="select"
+            label="Ruta"
+            name="routeId"
+            value={routeId ?? ""}
+            onChange={(v) => onRouteChange(String(v))}
+            options={routeOptions}
+            placeholder="Seleccionar ruta"
+          />
+          <DpInput
+            type="select"
+            label="Conductor"
+            name="driverId"
+            value={driverId ?? ""}
+            onChange={(v) => onDriverChange(String(v))}
+            options={driverOptions}
+            placeholder="Seleccionar conductor"
+            filter
+          />
+          <DpInput
+            type="select"
+            label="Vehículo"
+            name="vehicleId"
+            value={vehicleId ?? ""}
+            onChange={(v) => onVehicleChange(String(v))}
+            options={vehicleOptions}
+            placeholder="Seleccionar vehículo"
+            filter
+          />
+          <DpInput type="select" label="Estado" name="status" value={status} onChange={(v) => setStatus(v as TripStatus)} options={TRIP_STATUS_OPTIONS} />
+          <DpInput type="datetime" label="Inicio programado" name="scheduledStart" value={scheduledStart} onChange={setScheduledStart} />
           {isEdit && (
             <Button label="Gestionar paradas del viaje" severity="secondary" onClick={goToTripStops} className="w-full" />
           )}
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button label={saving ? "Guardando…" : "Guardar"} onClick={save} disabled={saving || !valid} loading={saving} />
-          </div>
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

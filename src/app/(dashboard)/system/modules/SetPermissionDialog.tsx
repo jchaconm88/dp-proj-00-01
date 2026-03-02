@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as moduleService from "@/services/moduleService";
 import type { ModulePermission } from "@/services/moduleService";
 
@@ -74,15 +73,16 @@ export default function SetPermissionDialog({
   };
 
   return (
-    <Dialog
-      header={isEdit ? "Editar permiso" : "Agregar permiso"}
+    <DpContentSet
+      title={isEdit ? "Editar permiso" : "Agregar permiso"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!code.trim()}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       <div className="flex flex-col gap-4 pt-2">
         {error && (
@@ -90,52 +90,10 @@ export default function SetPermissionDialog({
             {error}
           </div>
         )}
-        <div className="flex flex-col gap-2">
-          <label htmlFor="setperm-code" className="font-medium text-zinc-700 dark:text-zinc-300">
-            Código
-          </label>
-          <InputText
-            id="setperm-code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="Ej. view, create, edit"
-            className="w-full"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label htmlFor="setperm-label" className="font-medium text-zinc-700 dark:text-zinc-300">
-            Etiqueta
-          </label>
-          <InputText
-            id="setperm-label"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            placeholder="Ej. Ver, Crear, Editar"
-            className="w-full"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label htmlFor="setperm-desc" className="font-medium text-zinc-700 dark:text-zinc-300">
-            Descripción
-          </label>
-          <InputText
-            id="setperm-desc"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Ej. Permite visualizar la lista y el detalle."
-            className="w-full"
-          />
-        </div>
-        <div className="mt-2 flex justify-end gap-2">
-          <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-          <Button
-            label={saving ? "Guardando…" : "Guardar"}
-            onClick={save}
-            disabled={saving || !code.trim()}
-            loading={saving}
-          />
-        </div>
+        <DpInput type="input" label="Código" name="code" value={code} onChange={setCode} placeholder="Ej. view, create, edit" />
+        <DpInput type="input" label="Etiqueta" name="label" value={label} onChange={setLabel} placeholder="Ej. Ver, Crear, Editar" />
+        <DpInput type="input" label="Descripción" name="description" value={description} onChange={setDescription} placeholder="Ej. Permite visualizar la lista y el detalle." />
       </div>
-    </Dialog>
+    </DpContentSet>
   );
 }

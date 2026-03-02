@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "primereact/dialog";
-import { Dropdown } from "primereact/dropdown";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import { MultiSelect } from "primereact/multiselect";
-import { Button } from "primereact/button";
 import { Checkbox } from "primereact/checkbox";
 import * as roleService from "@/services/roleService";
 import type { RolePermissions } from "@/services/roleService";
@@ -90,16 +89,19 @@ export default function SetRolePermissionDialog({
     setSelectedCodes(checked ? ["*"] : []);
   };
 
+  const moduleOptions = modules.map((m) => ({ label: m.description || m.id, value: m.id }));
+
   return (
-    <Dialog
-      header={isEdit ? "Editar permisos del módulo" : "Agregar permisos por módulo"}
+    <DpContentSet
+      title={isEdit ? "Editar permisos del módulo" : "Agregar permisos por módulo"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!selectedModuleId}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       <div className="flex flex-col gap-4 pt-2">
         {error && (
@@ -108,20 +110,19 @@ export default function SetRolePermissionDialog({
           </div>
         )}
         {!isEdit && (
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Módulo</label>
-            <Dropdown
-              value={selectedModuleId}
-              options={modules.map((m) => ({ label: m.description || m.id, value: m.id }))}
-              onChange={(e) => setSelectedModuleId(e.value)}
-              placeholder="Seleccionar módulo"
-              className="w-full"
-            />
-          </div>
+          <DpInput
+            type="select"
+            label="Módulo"
+            name="moduleId"
+            value={selectedModuleId ?? ""}
+            onChange={(v) => setSelectedModuleId(v ? String(v) : null)}
+            options={moduleOptions}
+            placeholder="Seleccionar módulo"
+          />
         )}
         {isEdit && selectedModuleId && (
           <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Módulo</label>
+            <span className="font-medium text-zinc-700 dark:text-zinc-300">Módulo</span>
             <span className="text-zinc-600 dark:text-zinc-400">{selectedModuleId}</span>
           </div>
         )}
@@ -157,16 +158,7 @@ export default function SetRolePermissionDialog({
             </div>
           </div>
         )}
-        <div className="mt-2 flex justify-end gap-2">
-          <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-          <Button
-            label={saving ? "Guardando…" : "Guardar"}
-            onClick={save}
-            disabled={saving || !selectedModuleId}
-            loading={saving}
-          />
-        </div>
       </div>
-    </Dialog>
+    </DpContentSet>
   );
 }

@@ -12,8 +12,14 @@ import React, {
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
+import { Tag } from "primereact/tag";
+import { Checkbox } from "primereact/checkbox";
+import { format, isValid } from "date-fns";
 import type { DpTableDefColumn, DpTableRef, DpTableRow } from "./types";
 import DpTColumn from "./DpTColumn";
+
+/** Valores de severity aceptados por Tag de PrimeReact (no exportado por el paquete). */
+type TagSeverity = "success" | "info" | "warning" | "danger" | "secondary";
 
 const DEFAULT_PAGE_SIZES = [5, 10, 25];
 
@@ -46,6 +52,60 @@ function getCellValue(row: Record<string, unknown>, columnKey: string): unknown 
   const value = row[columnKey];
   if (Array.isArray(value)) return value.join(", ");
   return value ?? "—";
+}
+
+function parseDate(value: unknown): Date | null {
+  if (value == null || value === "") return null;
+  if (typeof value === "string" || typeof value === "number") {
+    const d = new Date(value);
+    return isValid(d) ? d : null;
+  }
+  return null;
+}
+
+function formatDateValue(value: unknown): string {
+  const d = parseDate(value);
+  if (!d) return value != null && value !== "" ? String(value) : "—";
+  return format(d, "dd/MM/yyyy");
+}
+
+function formatDateTimeValue(value: unknown): string {
+  const d = parseDate(value);
+  if (!d) return value != null && value !== "" ? String(value) : "—";
+  return format(d, "dd/MM/yyyy HH:mm:ss");
+}
+
+function getStatusLabelAndSeverity(
+  typeOptions: DpTableDefColumn["typeOptions"],
+  value: string
+): { label: string; severity: TagSeverity } {
+  const opt = typeOptions?.[value];
+  const label = typeof opt === "string" ? opt : opt?.label ?? value;
+  const severity: TagSeverity =
+    (typeof opt === "object" && opt?.severity) || "secondary";
+  return { label, severity };
+}
+
+function renderTypedCell(
+  col: DpTableDefColumn,
+  value: unknown
+): React.ReactNode {
+  if (col.type === "status") {
+    const str = value != null ? String(value) : "";
+    const { label, severity } = getStatusLabelAndSeverity(col.typeOptions, str);
+    return <Tag value={label} severity={severity} />;
+  }
+  if (col.type === "bool") {
+    const checked = value === true || value === "true" || (typeof value === "string" && value.toLowerCase() === "true") || (typeof value === "number" && value !== 0);
+    return <Checkbox checked={checked} readOnly className="pointer-events-none" />;
+  }
+  if (col.type === "date") {
+    return <span>{formatDateValue(value)}</span>;
+  }
+  if (col.type === "datetime") {
+    return <span>{formatDateTimeValue(value)}</span>;
+  }
+  return null;
 }
 
 function isDpTColumnChild(
@@ -182,9 +242,9 @@ function DpTableInner<T extends DpTableRow>(
           </button>
         );
       }
-      return (
-        <span>{String(value)}</span>
-      );
+      const typed = col.type ? renderTypedCell(col, value) : null;
+      if (typed !== null) return typed;
+      return <span>{String(value)}</span>;
     },
     [linkColumn, onDetail]
   );

@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
-import { Checkbox } from "primereact/checkbox";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as clientService from "@/services/clientService";
 import type { ClientStatus, PaymentCondition } from "@/services/clientService";
+import { CLIENT_STATUS, statusToSelectOptions } from "@/constants/statusOptions";
 
 export interface SetClientDialogProps {
   visible: boolean;
@@ -16,11 +15,7 @@ export interface SetClientDialogProps {
   onSuccess?: () => void;
 }
 
-const STATUS_OPTIONS: { label: string; value: ClientStatus }[] = [
-  { label: "Activo", value: "active" },
-  { label: "Inactivo", value: "inactive" },
-  { label: "Suspendido", value: "suspended" },
-];
+const CLIENT_STATUS_OPTIONS = statusToSelectOptions(CLIENT_STATUS);
 
 const PAYMENT_OPTIONS: { label: string; value: PaymentCondition }[] = [
   { label: "Transferencia", value: "transfer" },
@@ -172,15 +167,16 @@ export default function SetClientDialog({
   };
 
   return (
-    <Dialog
-      header={isEdit ? "Editar cliente" : "Agregar cliente"}
+    <DpContentSet
+      title={isEdit ? "Editar cliente" : "Agregar cliente"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "32rem", maxWidth: "95vw" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -193,124 +189,50 @@ export default function SetClientDialog({
           )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Código</label>
-              <InputText value={code} onChange={(e) => setCode(e.target.value)} placeholder="CLI-0001" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Estado</label>
-              <Dropdown value={status} options={STATUS_OPTIONS} onChange={(e) => setStatus(e.value)} className="w-full" />
-            </div>
+            <DpInput type="input" label="Código" name="code" value={code} onChange={setCode} placeholder="CLI-0001" />
+            <DpInput type="select" label="Estado" name="status" value={status} onChange={(v) => setStatus(v as ClientStatus)} options={CLIENT_STATUS_OPTIONS} />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Razón social</label>
-            <InputText
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="Supermercados Norte SAC"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Nombre comercial</label>
-            <InputText
-              value={commercialName}
-              onChange={(e) => setCommercialName(e.target.value)}
-              placeholder="Super Norte"
-              className="w-full"
-            />
-          </div>
+          <DpInput type="input" label="Razón social" name="businessName" value={businessName} onChange={setBusinessName} placeholder="Supermercados Norte SAC" />
+          <DpInput type="input" label="Nombre comercial" name="commercialName" value={commercialName} onChange={setCommercialName} placeholder="Super Norte" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo documento</label>
-              <Dropdown
-                value={documentType}
-                options={DOC_TYPE_OPTIONS}
-                onChange={(e) => setDocumentType(e.value ?? "")}
-                placeholder="RUC / DNI"
-                className="w-full"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Nº documento</label>
-              <InputText
-                value={documentNumber}
-                onChange={(e) => setDocumentNumber(e.target.value)}
-                placeholder="20123456789"
-                className="w-full"
-              />
-            </div>
+            <DpInput type="select" label="Tipo documento" name="documentType" value={documentType} onChange={(v) => setDocumentType(String(v))} options={DOC_TYPE_OPTIONS} placeholder="RUC / DNI" />
+            <DpInput type="input" label="Nº documento" name="documentNumber" value={documentNumber} onChange={setDocumentNumber} placeholder="20123456789" />
           </div>
 
           <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
             <h4 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Contacto</h4>
             <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Nombre contacto</label>
-                <InputText value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="María Torres" className="w-full" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Email</label>
-                <InputText value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} type="email" placeholder="maria.torres@supernorte.pe" className="w-full" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Teléfono</label>
-                <InputText value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="999888777" className="w-full" />
-              </div>
+              <DpInput type="input" label="Nombre contacto" name="contactName" value={contactName} onChange={setContactName} placeholder="María Torres" />
+              <DpInput type="input" label="Email" name="contactEmail" value={contactEmail} onChange={setContactEmail} placeholder="maria.torres@supernorte.pe" />
+              <DpInput type="input" label="Teléfono" name="contactPhone" value={contactPhone} onChange={setContactPhone} placeholder="999888777" />
             </div>
           </div>
 
           <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
             <h4 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Facturación</h4>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Días de crédito</label>
-                <InputText value={creditDays} onChange={(e) => setCreditDays(e.target.value)} type="number" placeholder="30" className="w-full" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Límite de crédito</label>
-                <InputText value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)} type="number" placeholder="50000" className="w-full" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Moneda</label>
-                <Dropdown value={currency} options={CURRENCY_OPTIONS} onChange={(e) => setCurrency(e.value ?? "PEN")} className="w-full" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Condición de pago</label>
-                <Dropdown value={paymentCondition} options={PAYMENT_OPTIONS} onChange={(e) => setPaymentCondition(e.value)} className="w-full" />
-              </div>
+              <DpInput type="number" label="Días de crédito" name="creditDays" value={creditDays} onChange={setCreditDays} placeholder="30" />
+              <DpInput type="number" label="Límite de crédito" name="creditLimit" value={creditLimit} onChange={setCreditLimit} placeholder="50000" />
+              <DpInput type="select" label="Moneda" name="currency" value={currency} onChange={(v) => setCurrency(String(v))} options={CURRENCY_OPTIONS} />
+              <DpInput type="select" label="Condición de pago" name="paymentCondition" value={paymentCondition} onChange={(v) => setPaymentCondition(v as PaymentCondition)} options={PAYMENT_OPTIONS} />
             </div>
           </div>
 
           <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
             <h4 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Logística</h4>
             <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Prioridad</label>
-                <InputText value={priority} onChange={(e) => setPriority(e.target.value)} type="number" placeholder="2" className="w-full" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-zinc-600 dark:text-zinc-400">Tiempo de servicio por defecto (min)</label>
-                <InputText value={defaultServiceTimeMin} onChange={(e) => setDefaultServiceTimeMin(e.target.value)} type="number" placeholder="30" className="w-full" />
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox inputId="requiresAppointment" checked={requiresAppointment} onChange={(e) => setRequiresAppointment(e.checked ?? false)} />
-                <label htmlFor="requiresAppointment" className="text-zinc-600 dark:text-zinc-400">Requiere cita</label>
-              </div>
+              <DpInput type="number" label="Prioridad" name="priority" value={priority} onChange={setPriority} placeholder="2" />
+              <DpInput type="number" label="Tiempo de servicio por defecto (min)" name="defaultServiceTimeMin" value={defaultServiceTimeMin} onChange={setDefaultServiceTimeMin} placeholder="30" />
+              <DpInput type="check" label="Requiere cita" name="requiresAppointment" value={requiresAppointment} onChange={setRequiresAppointment} />
             </div>
           </div>
 
           {isEdit && clientId && (
             <Button label="Gestionar ubicaciones" severity="secondary" onClick={goToLocations} className="w-full" />
           )}
-
-          <div className="mt-2 flex justify-end gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-700">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button label={saving ? "Guardando…" : "Guardar"} onClick={save} disabled={saving || !valid} loading={saving} />
-          </div>
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

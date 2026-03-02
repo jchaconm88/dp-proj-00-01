@@ -13,6 +13,7 @@ import {
   PERMISSION_UPDATE,
   PERMISSION_DELETE,
 } from "@/constants/permissions";
+import { VEHICLE_STATUS } from "@/constants/statusOptions";
 
 export type { VehicleRecord };
 
@@ -22,9 +23,9 @@ const TABLE_DEF: DpTableDefColumn[] = [
   { header: "Marca", column: "brand", order: 3, display: true, filter: true },
   { header: "Modelo", column: "model", order: 4, display: true, filter: true },
   { header: "Capacidad (kg)", column: "capacityKg", order: 5, display: true, filter: true },
-  { header: "Estado", column: "status", order: 6, display: true, filter: true },
+  { header: "Estado", column: "status", order: 6, display: true, filter: true, type: "status", typeOptions: VEHICLE_STATUS },
   { header: "Viaje actual", column: "currentTripId", order: 7, display: true, filter: true },
-  { header: "Activo", column: "active", order: 8, display: true, filter: true },
+  { header: "Activo", column: "active", order: 8, display: true, filter: true, type: "bool" },
 ];
 
 export interface VehiclesScreenProps {

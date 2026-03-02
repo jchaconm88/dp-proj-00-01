@@ -3,6 +3,7 @@ export { default as DpTColumn } from "./DpTColumn";
 export type { DpTColumnProps } from "./DpTColumn";
 export type {
   DpTableDefColumn,
+  DpTableDefColumnType,
   DpTableRef,
   DpTableRow,
 } from "./types";

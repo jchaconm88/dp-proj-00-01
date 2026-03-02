@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
-import { Button } from "primereact/button";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as routeService from "@/services/routeService";
 import type { StopStatus, StopType } from "@/services/routeService";
+import { STOP_STATUS, statusToSelectOptions } from "@/constants/statusOptions";
 import * as orderService from "@/services/orderService";
 import type { OrderRecord } from "@/services/orderService";
 
@@ -18,12 +17,7 @@ const STOP_TYPE_OPTIONS: { label: string; value: StopType }[] = [
   { label: "Descanso", value: "rest" },
 ];
 
-const STOP_STATUS_OPTIONS: { label: string; value: StopStatus }[] = [
-  { label: "Pendiente", value: "pending" },
-  { label: "Llegado", value: "arrived" },
-  { label: "Completado", value: "completed" },
-  { label: "Omitido", value: "skipped" },
-];
+const STOP_STATUS_OPTIONS = statusToSelectOptions(STOP_STATUS);
 
 export interface SetStopDialogProps {
   visible: boolean;
@@ -147,15 +141,16 @@ export default function SetStopDialog({
   ];
 
   return (
-    <Dialog
-      header={isEdit ? "Editar parada" : "Agregar parada"}
+    <DpContentSet
+      title={isEdit ? "Editar parada" : "Agregar parada"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -167,127 +162,32 @@ export default function SetStopDialog({
             </div>
           )}
           {!isEdit && (
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-zinc-700 dark:text-zinc-300">Id (en la colección)</label>
-              <InputText
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-                placeholder="stop01"
-                className="w-full font-mono text-sm"
-              />
-            </div>
+            <DpInput type="input" label="Id (en la colección)" name="id" value={id} onChange={setId} placeholder="stop01" className="font-mono text-sm" />
           )}
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Pedido</label>
-            <Dropdown
-              value={orderId}
-              options={orderOptions}
-              onChange={(e) => setOrderId(e.value ?? "")}
-              placeholder="Seleccione un pedido (opcional)"
-              filter
-              className="w-full"
-            />
+          <DpInput
+            type="select"
+            label="Pedido"
+            name="orderId"
+            value={orderId}
+            onChange={(v) => setOrderId(String(v))}
+            options={orderOptions}
+            placeholder="Seleccione un pedido (opcional)"
+            filter
+          />
+          <DpInput type="number" label="Secuencia" name="sequence" value={sequence} onChange={setSequence} placeholder="1" />
+          <DpInput type="time" label="ETA" name="eta" value={eta} onChange={setEta} />
+          <div className="grid grid-cols-2 gap-2">
+            <DpInput type="time" label="Ventana inicio" name="arrivalWindowStart" value={arrivalWindowStart} onChange={setArrivalWindowStart} />
+            <DpInput type="time" label="Ventana fin" name="arrivalWindowEnd" value={arrivalWindowEnd} onChange={setArrivalWindowEnd} />
           </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Secuencia</label>
-            <InputText
-              value={sequence}
-              onChange={(e) => setSequence(e.target.value)}
-              type="number"
-              placeholder="1"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">ETA</label>
-            <InputText
-              value={eta}
-              onChange={(e) => setEta(e.target.value)}
-              type="time"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Ventana de llegada</label>
-            <div className="grid grid-cols-2 gap-2">
-              <InputText
-                value={arrivalWindowStart}
-                onChange={(e) => setArrivalWindowStart(e.target.value)}
-                type="time"
-                className="w-full"
-              />
-              <InputText
-                value={arrivalWindowEnd}
-                onChange={(e) => setArrivalWindowEnd(e.target.value)}
-                type="time"
-                className="w-full"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Estado</label>
-            <Dropdown
-              value={status}
-              options={STOP_STATUS_OPTIONS}
-              onChange={(e) => setStatus(e.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Tipo</label>
-            <Dropdown
-              value={type}
-              options={STOP_TYPE_OPTIONS}
-              onChange={(e) => setType(e.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Nombre</label>
-            <InputText
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Almacén Lima"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Dirección</label>
-            <InputText
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Av. Industrial 123"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Latitud</label>
-            <InputText
-              value={lat}
-              onChange={(e) => setLat(e.target.value)}
-              type="number"
-              step="any"
-              placeholder="-12.0464"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-zinc-700 dark:text-zinc-300">Longitud</label>
-            <InputText
-              value={lng}
-              onChange={(e) => setLng(e.target.value)}
-              type="number"
-              step="any"
-              placeholder="-77.0428"
-              className="w-full"
-            />
-          </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button label={saving ? "Guardando…" : "Guardar"} onClick={save} disabled={saving || !valid} loading={saving} />
-          </div>
+          <DpInput type="select" label="Estado" name="status" value={status} onChange={(v) => setStatus(v as StopStatus)} options={STOP_STATUS_OPTIONS} />
+          <DpInput type="select" label="Tipo" name="type" value={type} onChange={(v) => setType(v as StopType)} options={STOP_TYPE_OPTIONS} />
+          <DpInput type="input" label="Nombre" name="name" value={name} onChange={setName} placeholder="Almacén Lima" />
+          <DpInput type="input" label="Dirección" name="address" value={address} onChange={setAddress} placeholder="Av. Industrial 123" />
+          <DpInput type="number" label="Latitud" name="lat" value={lat} onChange={setLat} placeholder="-12.0464" />
+          <DpInput type="number" label="Longitud" name="lng" value={lng} onChange={setLng} placeholder="-77.0428" />
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }

@@ -1,3 +1,6 @@
+/** Tipo de formato de celda: status (chip con color), bool (checkbox no editable), date (DD/MM/YYYY), datetime (DD/MM/YYYY HH:mm). */
+export type DpTableDefColumnType = "status" | "bool" | "date" | "datetime";
+
 /**
  * Definición de una columna de la tabla (estilo Angular tableDef).
  */
@@ -12,6 +15,10 @@ export interface DpTableDefColumn {
   display: boolean;
   /** Si la columna participa en el filtro global */
   filter?: boolean;
+  /** Formato de visualización: status (chip), bool (checkbox), date (DD/MM/YYYY), datetime (DD/MM/YYYY HH:mm) */
+  type?: DpTableDefColumnType;
+  /** Para type="status": mapa valor → etiqueta (string) o { label, severity } para definir color del chip. Severity: success|info|warning|danger|secondary. Si solo pasas etiquetas, los colores se asignan por defecto según el valor. */
+  typeOptions?: Record<string, string | { label: string; severity?: "success" | "info" | "warning" | "danger" | "secondary" }>;
 }
 
 /**

@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
-import { Checkbox } from "primereact/checkbox";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import * as moduleService from "@/services/moduleService";
 import type { ModuleColumn } from "@/services/moduleService";
 
@@ -90,16 +88,19 @@ export default function SetColumnDialog({
     }
   };
 
+  const valid = !!name.trim() && !!header.trim();
+
   return (
-    <Dialog
-      header={isEdit ? "Editar columna" : "Agregar columna"}
+    <DpContentSet
+      title={isEdit ? "Editar columna" : "Agregar columna"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!valid}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       <div className="flex flex-col gap-4 pt-2">
         {error && (
@@ -107,62 +108,18 @@ export default function SetColumnDialog({
             {error}
           </div>
         )}
-        <div className="flex flex-col gap-2">
-          <label className="font-medium text-zinc-700 dark:text-zinc-300">Orden</label>
-          <InputText
-            type="number"
-            value={String(order)}
-            onChange={(e) => setOrder(parseInt(e.target.value, 10) || 1)}
-            className="w-full"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="font-medium text-zinc-700 dark:text-zinc-300">Nombre</label>
-          <InputText
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ej. email"
-            className="w-full"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="font-medium text-zinc-700 dark:text-zinc-300">Encabezado</label>
-          <InputText
-            value={header}
-            onChange={(e) => setHeader(e.target.value)}
-            placeholder="Ej. Correo"
-            className="w-full"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="font-medium text-zinc-700 dark:text-zinc-300">Formato</label>
-          <InputText
-            value={format}
-            onChange={(e) => setFormat(e.target.value)}
-            placeholder="Ej. email, text"
-            className="w-full"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            inputId="setcol-filter"
-            checked={filter}
-            onChange={(e) => setFilter(!!e.checked)}
-          />
-          <label htmlFor="setcol-filter" className="text-sm text-zinc-700 dark:text-zinc-300">
-            Participa en filtro
-          </label>
-        </div>
-        <div className="mt-2 flex justify-end gap-2">
-          <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-          <Button
-            label={saving ? "Guardando…" : "Guardar"}
-            onClick={save}
-            disabled={saving || !name.trim() || !header.trim()}
-            loading={saving}
-          />
-        </div>
+        <DpInput
+          type="number"
+          label="Orden"
+          name="order"
+          value={String(order)}
+          onChange={(v) => setOrder(parseInt(v, 10) || 1)}
+        />
+        <DpInput type="input" label="Nombre" name="name" value={name} onChange={setName} placeholder="Ej. email" />
+        <DpInput type="input" label="Encabezado" name="header" value={header} onChange={setHeader} placeholder="Ej. Correo" />
+        <DpInput type="input" label="Formato" name="format" value={format} onChange={setFormat} placeholder="Ej. email, text" />
+        <DpInput type="check" label="Participa en filtro" name="filter" value={filter} onChange={setFilter} />
       </div>
-    </Dialog>
+    </DpContentSet>
   );
 }

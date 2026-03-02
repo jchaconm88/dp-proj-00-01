@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
+import { DpInput } from "@/components/DpInput";
+import { DpContentSet } from "@/components/DpContent";
 import { MultiSelect } from "primereact/multiselect";
-import { Button } from "primereact/button";
 import * as userService from "@/services/userService";
 import * as roleService from "@/services/roleService";
 import type { RoleRecord } from "@/services/roleService";
@@ -116,15 +115,16 @@ export default function SetUserDialog({ visible, userId, onSuccess }: SetUserDia
   };
 
   return (
-    <Dialog
-      header={isEdit ? "Editar usuario" : "Agregar usuario"}
+    <DpContentSet
+      title={isEdit ? "Editar usuario" : "Agregar usuario"}
+      cancelLabel="Cancelar"
+      onCancel={onHide}
+      saveLabel="Guardar"
+      onSave={save}
+      saving={saving}
+      saveDisabled={!email.trim()}
       visible={visible}
-      style={{ width: "28rem" }}
       onHide={onHide}
-      closable={!saving}
-      closeOnEscape={!saving}
-      dismissableMask={!saving}
-      modal
     >
       {loading ? (
         <div className="py-8 text-center text-zinc-500">Cargando…</div>
@@ -135,31 +135,8 @@ export default function SetUserDialog({ visible, userId, onSuccess }: SetUserDia
               {error}
             </div>
           )}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setuser-displayName" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Nombre
-            </label>
-            <InputText
-              id="setuser-displayName"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Nombre para mostrar"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="setuser-email" className="font-medium text-zinc-700 dark:text-zinc-300">
-              Correo
-            </label>
-            <InputText
-              id="setuser-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="email@ejemplo.com"
-              className="w-full"
-            />
-          </div>
+          <DpInput type="input" label="Nombre" name="displayName" value={displayName} onChange={setDisplayName} placeholder="Nombre para mostrar" />
+          <DpInput type="input" label="Correo" name="email" value={email} onChange={setEmail} placeholder="email@ejemplo.com" />
           <div className="flex flex-col gap-2">
             <label htmlFor="setuser-role" className="font-medium text-zinc-700 dark:text-zinc-300">
               Roles
@@ -173,17 +150,8 @@ export default function SetUserDialog({ visible, userId, onSuccess }: SetUserDia
               className="w-full"
             />
           </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button label="Cancelar" severity="secondary" onClick={onHide} disabled={saving} />
-            <Button
-              label={saving ? "Guardando…" : "Guardar"}
-              onClick={save}
-              disabled={saving || !email.trim()}
-              loading={saving}
-            />
-          </div>
         </div>
       )}
-    </Dialog>
+    </DpContentSet>
   );
 }
