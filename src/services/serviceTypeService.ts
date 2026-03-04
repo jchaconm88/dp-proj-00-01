@@ -45,12 +45,12 @@ export type ServiceTypeEditInput = Partial<Omit<ServiceTypeRecord, "id">>;
 export async function get(id: string): Promise<ServiceTypeRecord | null> {
   const doc = await getDocument<Omit<ServiceTypeRecord, "id">>(COLLECTION, id);
   if (!doc) return null;
-  return { id: doc.id, ...doc };
+  return doc;
 }
 
 export async function list(): Promise<ServiceTypeRecord[]> {
   const docs = await getCollection<Omit<ServiceTypeRecord, "id">>(COLLECTION);
-  return docs.map((d) => ({ id: d.id, ...d } as ServiceTypeRecord));
+  return docs;
 }
 
 export async function add(data: ServiceTypeAddInput): Promise<string> {

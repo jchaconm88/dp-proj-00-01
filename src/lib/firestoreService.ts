@@ -196,10 +196,11 @@ export async function getCollection<T = DocumentData>(
  * El callback recibe la transacción de Firestore y la instancia db para construir referencias.
  */
 export async function runTransaction<T>(
-  updateFn: (transaction: Transaction, db: NonNullable<typeof db>) => Promise<T>
+  updateFn: (transaction: Transaction, firestoreDb: NonNullable<typeof db>) => Promise<T>
 ): Promise<T> {
   if (!db) throw new Error("Firestore no está disponible.");
-  return firestoreRunTransaction(db, (transaction) => updateFn(transaction, db));
+  const firestoreDb = db;
+  return firestoreRunTransaction(firestoreDb, (transaction) => updateFn(transaction, firestoreDb));
 }
 
 /**
