@@ -13,8 +13,10 @@ import {
   where,
   limit,
   serverTimestamp,
+  runTransaction as firestoreRunTransaction,
   type QueryConstraint,
   type DocumentData,
+  type Transaction,
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
 
@@ -187,6 +189,17 @@ export async function getCollection<T = DocumentData>(
   if (!db) throw new Error("Firestore no está disponible.");
   const snapshot = await getDocs(collection(db, collectionName));
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as { id: string } & T));
+}
+
+/**
+ * Ejecuta una transacción atómica. Útil para leer y escribir sin condiciones de carrera.
+ * El callback recibe la transacción de Firestore y la instancia db para construir referencias.
+ */
+export async function runTransaction<T>(
+  updateFn: (transaction: Transaction, db: NonNullable<typeof db>) => Promise<T>
+): Promise<T> {
+  if (!db) throw new Error("Firestore no está disponible.");
+  return firestoreRunTransaction(db, (transaction) => updateFn(transaction, db));
 }
 
 /**

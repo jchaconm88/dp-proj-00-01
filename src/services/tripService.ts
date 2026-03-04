@@ -30,13 +30,24 @@ export interface TripRecord {
   id: string;
   code: string;
   routeId: string;
-  routeCode: string;
+  /** Texto de ruta (interno o externo). Reemplaza `routeCode`. */
+  route: string;
+  /** Si true, la ruta es externa y se ingresa manualmente. */
+  isExternalRoute: boolean;
+  transportServiceId: string;
+  /** Servicio de transporte (denormalizado) para mostrar en grilla. */
+  transportService: string;
+  clientId: string;
+  /** Cliente (denormalizado) para mostrar en grilla. */
+  client: string;
   driverId: string;
   /** Conductor (denormalizado): licenseNo - lastName firstName */
   driver: string;
   vehicleId: string;
   /** Vehículo (denormalizado): plate */
   vehicle: string;
+  /** Guía de transporte (número o código). */
+  transportGuide: string;
   status: TripStatus;
   scheduledStart: string;
 }
@@ -44,11 +55,17 @@ export interface TripRecord {
 export interface TripAddInput {
   code: string;
   routeId: string;
-  routeCode: string;
+  route: string;
+  isExternalRoute: boolean;
+  transportServiceId: string;
+  transportService: string;
+  clientId: string;
+  client: string;
   driverId: string;
   driver: string;
   vehicleId: string;
   vehicle: string;
+  transportGuide: string;
   status: TripStatus;
   scheduledStart: string;
 }
@@ -103,15 +120,22 @@ function toTripRecord(doc: { id: string } & Record<string, unknown>): TripRecord
       ? (doc.scheduledStart as { toDate: () => Date }).toDate().toISOString()
       : String(doc.scheduledStart)
     : "";
+  const route = String(doc.route ?? doc.routeCode ?? "");
   return {
     id: doc.id,
     code: String(doc.code ?? ""),
     routeId: String(doc.routeId ?? ""),
-    routeCode: String(doc.routeCode ?? ""),
+    route,
+    isExternalRoute: doc.isExternalRoute === true,
+    transportServiceId: String(doc.transportServiceId ?? ""),
+    transportService: String(doc.transportService ?? ""),
+    clientId: String(doc.clientId ?? ""),
+    client: String(doc.client ?? ""),
     driverId: String(doc.driverId ?? ""),
     driver: String(doc.driver ?? ""),
     vehicleId: String(doc.vehicleId ?? ""),
     vehicle: String(doc.vehicle ?? ""),
+    transportGuide: String(doc.transportGuide ?? ""),
     status,
     scheduledStart,
   };
@@ -173,11 +197,17 @@ export async function addTrip(data: TripAddInput): Promise<string> {
   return addDocument(COLLECTION, {
     code: data.code.trim(),
     routeId: data.routeId.trim(),
-    routeCode: data.routeCode.trim(),
+    route: data.route.trim(),
+    isExternalRoute: data.isExternalRoute,
+    transportServiceId: data.transportServiceId.trim(),
+    transportService: data.transportService.trim(),
+    clientId: data.clientId.trim(),
+    client: data.client.trim(),
     driverId: data.driverId.trim(),
     driver: data.driver.trim(),
     vehicleId: data.vehicleId.trim(),
     vehicle: data.vehicle.trim(),
+    transportGuide: (data.transportGuide ?? "").trim(),
     status: data.status,
     scheduledStart: data.scheduledStart.trim() || null,
   });
@@ -187,11 +217,17 @@ export async function editTrip(id: string, data: TripEditInput): Promise<void> {
   const payload: Record<string, unknown> = {};
   if (data.code !== undefined) payload.code = data.code;
   if (data.routeId !== undefined) payload.routeId = data.routeId;
-  if (data.routeCode !== undefined) payload.routeCode = data.routeCode;
+  if (data.route !== undefined) payload.route = data.route;
+  if (data.isExternalRoute !== undefined) payload.isExternalRoute = data.isExternalRoute;
+  if (data.transportServiceId !== undefined) payload.transportServiceId = data.transportServiceId;
+  if (data.transportService !== undefined) payload.transportService = data.transportService;
+  if (data.clientId !== undefined) payload.clientId = data.clientId;
+  if (data.client !== undefined) payload.client = data.client;
   if (data.driverId !== undefined) payload.driverId = data.driverId;
   if (data.driver !== undefined) payload.driver = data.driver;
   if (data.vehicleId !== undefined) payload.vehicleId = data.vehicleId;
   if (data.vehicle !== undefined) payload.vehicle = data.vehicle;
+  if (data.transportGuide !== undefined) payload.transportGuide = data.transportGuide;
   if (data.status !== undefined) payload.status = data.status;
   if (data.scheduledStart !== undefined) payload.scheduledStart = data.scheduledStart || null;
   await updateDocument(COLLECTION, id, payload);

@@ -87,6 +87,9 @@ export interface RateRuleRecord {
   priority: number;
   ruleType: RateRuleType;
   calculationType: CalculationType;
+  transportServiceId: string;
+  /** Nombre del servicio (denormalizado) para mostrar en grilla */
+  transportService: string;
   vehicleType: string;
   conditions: RateRuleConditions;
   calculation: RateRuleCalculation;
@@ -102,6 +105,8 @@ export interface RateRuleAddInput {
   priority: number;
   ruleType: RateRuleType;
   calculationType: CalculationType;
+  transportServiceId: string;
+  transportService: string;
   vehicleType: string;
   conditions: RateRuleConditions;
   calculation: RateRuleCalculation;
@@ -196,6 +201,8 @@ function toRateRuleRecord(doc: { id: string } & Record<string, unknown>): RateRu
     priority: Number(doc.priority) ?? 0,
     ruleType: toRuleType(doc.ruleType),
     calculationType: toCalculationType(doc.calculationType),
+    transportServiceId: String(doc.transportServiceId ?? ""),
+    transportService: String(doc.transportService ?? ""),
     vehicleType: String(doc.vehicleType ?? ""),
     conditions: toConditions(doc.conditions),
     calculation: toCalculation(doc.calculation),
@@ -285,6 +292,8 @@ export async function addRateRule(contractId: string, data: RateRuleAddInput): P
       priority: Number(data.priority) ?? 0,
       ruleType: data.ruleType,
       calculationType: data.calculationType,
+      transportServiceId: data.transportServiceId.trim(),
+      transportService: data.transportService.trim(),
       vehicleType: data.vehicleType.trim(),
       conditions: data.conditions ?? {},
       calculation: data.calculation ?? {},
@@ -307,6 +316,8 @@ export async function editRateRule(
   if (data.priority !== undefined) payload.priority = Number(data.priority) ?? 0;
   if (data.ruleType !== undefined) payload.ruleType = data.ruleType;
   if (data.calculationType !== undefined) payload.calculationType = data.calculationType;
+  if (data.transportServiceId !== undefined) payload.transportServiceId = data.transportServiceId;
+  if (data.transportService !== undefined) payload.transportService = data.transportService;
   if (data.vehicleType !== undefined) payload.vehicleType = data.vehicleType;
   if (data.conditions !== undefined) payload.conditions = data.conditions;
   if (data.calculation !== undefined) payload.calculation = data.calculation;

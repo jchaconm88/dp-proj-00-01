@@ -83,3 +83,45 @@ export const DRIVER_STATUS: Record<string, StatusOption> = {
   available: { label: "Disponible", severity: "success" },
   assigned: { label: "Asignado", severity: "warning" },
 };
+
+// —— Paradas de viaje (trip-stops) ——
+export const TRIP_STOP_STATUS: Record<string, StatusOption> = {
+  pending: { label: "Pendiente", severity: "info" },
+  arrived: { label: "Llegado", severity: "warning" },
+  completed: { label: "Completado", severity: "success" },
+  skipped: { label: "Omitido", severity: "secondary" },
+};
+
+export const TRIP_STOP_TYPE: Record<string, StatusOption> = {
+  origin: { label: "Origen", severity: "info" },
+  pickup: { label: "Recojo", severity: "warning" },
+  delivery: { label: "Entrega", severity: "success" },
+  checkpoint: { label: "Punto de control", severity: "info" },
+  rest: { label: "Descanso", severity: "secondary" },
+};
+
+// —— Servicios de transporte (category / calculationType, mismo que rate-rules) ——
+export const SERVICE_TYPE_CATEGORY: Record<string, StatusOption> = {
+  distribution: { label: "Distribución", severity: "info" },
+  express: { label: "Express", severity: "warning" },
+  dedicated: { label: "Dedicado", severity: "secondary" },
+};
+
+/** Tipo de cálculo (servicios de transporte y reglas de tarifa). */
+export const CALCULATION_TYPE: Record<string, StatusOption> = {
+  fixed: { label: "Fijo", severity: "info" },
+  zone: { label: "Zona", severity: "info" },
+  per_km: { label: "Por km", severity: "info" },
+  per_weight: { label: "Por peso", severity: "info" },
+  per_volume: { label: "Por volumen", severity: "info" },
+  percentage: { label: "Porcentaje", severity: "info" },
+  formula: { label: "Fórmula", severity: "info" },
+};
+
+/** Periodo de reinicio de secuencias. */
+export const RESET_PERIOD: Record<string, StatusOption> = {
+  never: { label: "Nunca", severity: "secondary" },
+  yearly: { label: "Anual", severity: "info" },
+  monthly: { label: "Mensual", severity: "info" },
+  daily: { label: "Diario", severity: "info" },
+};

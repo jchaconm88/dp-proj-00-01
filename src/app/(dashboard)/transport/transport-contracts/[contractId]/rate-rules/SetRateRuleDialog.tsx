@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DpInput } from "@/components/DpInput";
 import { DpContentSet } from "@/components/DpContent";
 import * as contractService from "@/services/contractService";
@@ -10,6 +10,9 @@ import type {
   RateRuleType,
   CalculationType,
 } from "@/services/contractService";
+import * as serviceTypeService from "@/services/serviceTypeService";
+import type { ServiceTypeRecord } from "@/services/serviceTypeService";
+import { CALCULATION_TYPE, statusToSelectOptions } from "@/constants/statusOptions";
 
 const RULE_TYPE_OPTIONS: { label: string; value: RateRuleType }[] = [
   { label: "Base", value: "base" },
@@ -18,15 +21,7 @@ const RULE_TYPE_OPTIONS: { label: string; value: RateRuleType }[] = [
   { label: "Descuento", value: "discount" },
 ];
 
-const CALCULATION_TYPE_OPTIONS: { label: string; value: CalculationType }[] = [
-  { label: "Fijo", value: "fixed" },
-  { label: "Zona", value: "zone" },
-  { label: "Por km", value: "per_km" },
-  { label: "Por peso", value: "per_weight" },
-  { label: "Por volumen", value: "per_volume" },
-  { label: "Porcentaje", value: "percentage" },
-  { label: "Fórmula", value: "formula" },
-];
+const CALCULATION_TYPE_OPTIONS = statusToSelectOptions(CALCULATION_TYPE);
 
 export interface SetRateRuleDialogProps {
   visible: boolean;
@@ -69,6 +64,9 @@ export default function SetRateRuleDialog({
   const [priority, setPriority] = useState("");
   const [ruleType, setRuleType] = useState<RateRuleType>("base");
   const [calculationType, setCalculationType] = useState<CalculationType>("zone");
+  const [transportServiceId, setTransportServiceId] = useState("");
+  const [transportService, setTransportService] = useState("");
+  const [services, setServices] = useState<ServiceTypeRecord[]>([]);
   const [vehicleType, setVehicleType] = useState("");
   const [stackable, setStackable] = useState(false);
   const [validFrom, setValidFrom] = useState("");
@@ -98,6 +96,8 @@ export default function SetRateRuleDialog({
       setPriority("1");
       setRuleType("base");
       setCalculationType("zone");
+      setTransportServiceId("");
+      setTransportService("");
       setVehicleType("");
       setStackable(false);
       const today = new Date().toISOString().slice(0, 10);
@@ -131,6 +131,8 @@ export default function SetRateRuleDialog({
         setPriority(String(data.priority ?? "1"));
         setRuleType(data.ruleType ?? "base");
         setCalculationType(data.calculationType ?? "zone");
+        setTransportServiceId(data.transportServiceId ?? "");
+        setTransportService(data.transportService ?? "");
         setVehicleType(data.vehicleType ?? "");
         setStackable(data.stackable ?? false);
         setValidFrom(data.validFrom ?? "");
@@ -152,6 +154,27 @@ export default function SetRateRuleDialog({
       .catch((err) => setError(err instanceof Error ? err.message : "Error al cargar."))
       .finally(() => setLoading(false));
   }, [visible, contractId, ruleId]);
+
+  useEffect(() => {
+    if (!visible) return;
+    serviceTypeService.list().then(setServices).catch(() => setServices([]));
+  }, [visible]);
+
+  const filteredServices = useMemo(
+    () => services.filter((s) => s.calculationType === calculationType),
+    [services, calculationType]
+  );
+  const serviceOptions = useMemo(
+    () => filteredServices.map((s) => ({ label: s.name || s.code || s.id, value: s.id })),
+    [filteredServices]
+  );
+
+  const onTransportServiceChange = (value: string | number) => {
+    const id = value != null ? String(value) : "";
+    setTransportServiceId(id);
+    const svc = services.find((s) => s.id === id);
+    setTransportService(svc ? (svc.name || svc.code || "").trim() : "");
+  };
 
   const save = async () => {
     if (!name.trim()) return;
@@ -183,6 +206,8 @@ export default function SetRateRuleDialog({
         priority: Number(priority) || 0,
         ruleType,
         calculationType,
+        transportServiceId: transportServiceId.trim(),
+        transportService: transportService.trim(),
         vehicleType: vehicleType.trim(),
         conditions,
         calculation,
@@ -241,17 +266,30 @@ export default function SetRateRuleDialog({
               options={RULE_TYPE_OPTIONS}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <DpInput
+            type="select"
+            label="Tipo de cálculo"
+            name="calculationType"
+            value={calculationType}
+            onChange={(v) => {
+              setCalculationType(v as CalculationType);
+              setTransportServiceId("");
+              setTransportService("");
+            }}
+            options={CALCULATION_TYPE_OPTIONS}
+          />
+          {calculationType && (
             <DpInput
               type="select"
-              label="Tipo de cálculo"
-              name="calculationType"
-              value={calculationType}
-              onChange={(v) => setCalculationType(v as CalculationType)}
-              options={CALCULATION_TYPE_OPTIONS}
+              label="Servicio de transporte"
+              name="transportServiceId"
+              value={transportServiceId}
+              onChange={onTransportServiceChange}
+              options={serviceOptions}
+              placeholder={filteredServices.length === 0 ? "No hay servicios con este tipo de cálculo" : "Seleccionar servicio"}
             />
-            <DpInput type="input" label="Tipo de vehículo" name="vehicleType" value={vehicleType} onChange={setVehicleType} placeholder="5TN" />
-          </div>
+          )}
+          <DpInput type="input" label="Tipo de vehículo" name="vehicleType" value={vehicleType} onChange={setVehicleType} placeholder="5TN" />
           <div className="rounded border border-zinc-200 p-3 dark:border-navy-600">
             <div className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Condiciones</div>
             <div className="grid grid-cols-2 gap-2">

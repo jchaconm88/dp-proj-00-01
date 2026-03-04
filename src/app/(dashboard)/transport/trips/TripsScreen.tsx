@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import * as tripService from "@/services/tripService";
 import type { TripRecord } from "@/services/tripService";
 import { DpContent, DpContentHeader } from "@/components/DpContent";
-import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
+import { DpTable, type DpTableRef, type DpTableDefColumn, DpTColumn } from "@/components/DpTable";
 import { useAccessService } from "@/hooks/useAccessService";
 import {
   MODULE_TRIP,
@@ -19,11 +19,15 @@ export type { TripRecord };
 
 const TABLE_DEF: DpTableDefColumn[] = [
   { header: "Código", column: "code", order: 1, display: true, filter: true },
-  { header: "Ruta", column: "routeCodeDisplay", order: 2, display: true, filter: true },
-  { header: "Conductor", column: "driver", order: 3, display: true, filter: true },
-  { header: "Vehículo", column: "vehicle", order: 4, display: true, filter: true },
-  { header: "Estado", column: "status", order: 5, display: true, filter: true, type: "status", typeOptions: TRIP_STATUS },
-  { header: "Inicio programado", column: "scheduledStart", order: 6, display: true, filter: true, type: "datetime" },
+  { header: "Ruta", column: "routeDisplay", order: 2, display: true, filter: true },
+  { header: "Servicio", column: "transportServiceDisplay", order: 3, display: true, filter: true },
+  { header: "Cliente", column: "clientDisplay", order: 4, display: true, filter: true },
+  { header: "Guía", column: "transportGuide", order: 5, display: true, filter: true },
+  { header: "Conductor", column: "driver", order: 6, display: true, filter: true },
+  { header: "Vehículo", column: "vehicle", order: 7, display: true, filter: true },
+  { header: "Estado", column: "status", order: 8, display: true, filter: true, type: "status", typeOptions: TRIP_STATUS },
+  { header: "Inicio programado", column: "scheduledStart", order: 9, display: true, filter: true, type: "datetime" },
+  { header: "Paradas", column: "tripStops", order: 10, display: true, filter: false },
 ];
 
 export interface TripsScreenProps {
@@ -34,7 +38,9 @@ export interface TripsScreenProps {
 export default function TripsScreen({ refreshTrigger, onRefresh }: TripsScreenProps) {
   const router = useRouter();
   const { requirePermissionOrAlert } = useAccessService();
-  const tableRef = useRef<DpTableRef<TripRecord & { routeCodeDisplay?: string }>>(null);
+  const tableRef = useRef<
+    DpTableRef<TripRecord & { routeDisplay?: string; transportServiceDisplay?: string; clientDisplay?: string }>
+  >(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -50,7 +56,9 @@ export default function TripsScreen({ refreshTrigger, onRefresh }: TripsScreenPr
       tableRef.current?.setDatasource(
         list.map((t) => ({
           ...t,
-          routeCodeDisplay: (t.routeCode || t.routeId || "—").trim(),
+          routeDisplay: (t.route || t.routeId || "—").trim(),
+          transportServiceDisplay: (t.transportService || t.transportServiceId || "—").trim(),
+          clientDisplay: (t.client || t.clientId || "—").trim(),
           driver: (t.driver || t.driverId || "—").trim(),
           vehicle: (t.vehicle || t.vehicleId || "—").trim(),
         }))
@@ -123,7 +131,7 @@ export default function TripsScreen({ refreshTrigger, onRefresh }: TripsScreenPr
         </div>
       )}
 
-      <DpTable<TripRecord & { routeCodeDisplay?: string }>
+      <DpTable<TripRecord & { routeDisplay?: string; transportServiceDisplay?: string; clientDisplay?: string }>
         ref={tableRef}
         tableDef={TABLE_DEF}
         linkColumn="code"
@@ -134,7 +142,21 @@ export default function TripsScreen({ refreshTrigger, onRefresh }: TripsScreenPr
         filterPlaceholder="Filtrar..."
         emptyMessage='No hay viajes en la colección "trips".'
         emptyFilterMessage="No hay resultados para el filtro."
-      />
+        >
+        <DpTColumn<TripRecord> name="tripStops">
+          {(row) => (
+            <button
+              type="button"
+              onClick={() => router.push(`/transport/trips/${encodeURIComponent(row.id)}/trip-stops`)}
+              className="p-button p-button-text p-button-rounded p-button-icon-only"
+              aria-label="Ver paradas de viaje"
+              title="Paradas de viaje"
+            >
+              <i className="pi pi-list" />
+            </button>
+          )}
+        </DpTColumn>
+      </DpTable>
     </DpContent>
   );
 }

@@ -71,7 +71,7 @@ export default function DpContentSet({
 }: DpContentSetProps) {
   const footerEl = footer(cancelLabel, saveLabel, onCancel, onSave, saving, saveDisabled);
 
-  // Modo dialog: DpContentSet envuelve todo en el Dialog
+  // Modo dialog: contenido con scroll y footer siempre visible abajo
   if (visible !== undefined) {
     return (
       <Dialog
@@ -79,16 +79,20 @@ export default function DpContentSet({
         visible={visible}
         onHide={onHide ?? onCancel}
         style={{ width: "36rem", maxHeight: "90vh" }}
-        contentStyle={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
+        contentStyle={{ overflow: "hidden", display: "flex", flexDirection: "column", padding: 0 }}
         closable={!saving}
         closeOnEscape={!saving}
         dismissableMask={!saving}
         blockScroll
         modal
       >
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pt-2">
-          {children}
-          {footerEl}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-4 pb-4">
+            <div className="flex flex-col gap-4">{children}</div>
+          </div>
+          <div className="flex-shrink-0 border-t border-zinc-200 bg-zinc-50/80 px-6 py-4 [&>div]:mt-0 dark:border-navy-600 dark:bg-navy-900/50">
+            {footerEl}
+          </div>
         </div>
       </Dialog>
     );

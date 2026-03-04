@@ -10,16 +10,19 @@ import { useAccessService } from "@/hooks/useAccessService";
 import { MODULE_TRANSPORT_CONTRACT, PERMISSION_CREATE, PERMISSION_UPDATE, PERMISSION_DELETE } from "@/constants/permissions";
 import SetRateRuleDialog from "./SetRateRuleDialog";
 
+import { CALCULATION_TYPE } from "@/constants/statusOptions";
+
 const TABLE_DEF: DpTableDefColumn[] = [
   { header: "Código", column: "code", order: 1, display: true, filter: true },
   { header: "Nombre", column: "name", order: 2, display: true, filter: true },
   { header: "Activo", column: "active", order: 3, display: true, filter: true },
   { header: "Prioridad", column: "priority", order: 4, display: true, filter: true },
   { header: "Tipo regla", column: "ruleType", order: 5, display: true, filter: true },
-  { header: "Cálculo", column: "calculationType", order: 6, display: true, filter: true },
-  { header: "Vehículo", column: "vehicleType", order: 7, display: true, filter: true },
-  { header: "Vigencia", column: "validityStr", order: 8, display: true, filter: true },
-  { header: "Apilable", column: "stackable", order: 9, display: true, filter: true },
+  { header: "Cálculo", column: "calculationType", order: 6, display: true, filter: true, type: "status", typeOptions: CALCULATION_TYPE },
+  { header: "Servicio", column: "transportService", order: 7, display: true, filter: true },
+  { header: "Vehículo", column: "vehicleType", order: 8, display: true, filter: true },
+  { header: "Vigencia", column: "validityStr", order: 9, display: true, filter: true },
+  { header: "Apilable", column: "stackable", order: 10, display: true, filter: true },
 ];
 
 export interface RateRulesScreenProps {

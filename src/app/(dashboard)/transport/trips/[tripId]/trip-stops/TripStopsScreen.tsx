@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import * as tripService from "@/services/tripService";
 import type { TripStopRecord, TripRecord } from "@/services/tripService";
 import { DpContentInfo, DpContentHeader } from "@/components/DpContent";
-import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
+import { DpTable, type DpTableRef, type DpTableDefColumn, DpTColumn } from "@/components/DpTable";
 import { useAccessService } from "@/hooks/useAccessService";
 import {
   MODULE_TRIP,
@@ -14,15 +14,17 @@ import {
   PERMISSION_DELETE,
 } from "@/constants/permissions";
 import SetTripStopDialog from "./SetTripStopDialog";
+import { TRIP_STOP_STATUS, TRIP_STOP_TYPE } from "@/constants/statusOptions";
 
 const TABLE_DEF: DpTableDefColumn[] = [
   { header: "Orden", column: "order", order: 1, display: true, filter: true },
-  { header: "Tipo", column: "type", order: 2, display: true, filter: true },
+  { header: "Tipo", column: "type", order: 2, display: true, filter: true, type: "status", typeOptions: TRIP_STOP_TYPE },
   { header: "Nombre", column: "name", order: 3, display: true, filter: true },
   { header: "Lat", column: "lat", order: 4, display: true, filter: true },
   { header: "Lng", column: "lng", order: 5, display: true, filter: true },
-  { header: "Estado", column: "status", order: 6, display: true, filter: true },
-  { header: "Llegada planificada", column: "plannedArrival", order: 7, display: true, filter: true },
+  { header: "Estado", column: "status", order: 6, display: true, filter: true, type: "status", typeOptions: TRIP_STOP_STATUS },
+  { header: "Llegada planificada", column: "plannedArrival", order: 7, display: true, filter: true, type: "datetime" },
+  { header: "Evidencia", column: "evidence", order: 8, display: true, filter: false },
 ];
 
 export interface TripStopsScreenProps {
@@ -159,7 +161,21 @@ export default function TripStopsScreen({ tripId }: TripStopsScreenProps) {
         filterPlaceholder="Filtrar..."
         emptyMessage="No hay paradas en este viaje."
         emptyFilterMessage="No hay resultados para el filtro."
-      />
+      >
+        <DpTColumn<TripStopRecord> name="evidence">
+          {(row) => (
+            <button
+              type="button"
+              onClick={() => openEvidence(row)}
+              className="p-button p-button-text p-button-rounded p-button-icon-only"
+              aria-label="Ver paradas de viaje"
+              title="Paradas de viaje"
+            >
+              <i className="pi pi-list" />
+            </button>
+          )}
+        </DpTColumn>
+      </DpTable>
 
       <SetTripStopDialog
         visible={showDialog}

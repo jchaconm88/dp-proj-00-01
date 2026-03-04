@@ -7,17 +7,10 @@ import { DpInput } from "@/components/DpInput";
 import { DpContentSet } from "@/components/DpContent";
 import * as tripService from "@/services/tripService";
 import type { TripStopType, TripStopStatus } from "@/services/tripService";
-import { STOP_STATUS, statusToSelectOptions } from "@/constants/statusOptions";
+import { TRIP_STOP_STATUS, TRIP_STOP_TYPE, statusToSelectOptions } from "@/constants/statusOptions";
 
-const TYPE_OPTIONS: { label: string; value: TripStopType }[] = [
-  { label: "Origen", value: "origin" },
-  { label: "Recojo", value: "pickup" },
-  { label: "Entrega", value: "delivery" },
-  { label: "Punto de control", value: "checkpoint" },
-  { label: "Descanso", value: "rest" },
-];
-
-const TRIP_STOP_STATUS_OPTIONS = statusToSelectOptions(STOP_STATUS);
+const TYPE_OPTIONS = statusToSelectOptions(TRIP_STOP_TYPE);
+const TRIP_STOP_STATUS_OPTIONS = statusToSelectOptions(TRIP_STOP_STATUS);
 
 export interface SetTripStopDialogProps {
   visible: boolean;
@@ -37,7 +30,6 @@ export default function SetTripStopDialog({
   onOpenEvidence,
 }: SetTripStopDialogProps) {
   const isEdit = !!stopId;
-  const [id, setId] = useState("");
   const [order, setOrder] = useState<string>("");
   const [type, setType] = useState<TripStopType>("checkpoint");
   const [name, setName] = useState("");
@@ -55,7 +47,6 @@ export default function SetTripStopDialog({
     if (!visible) return;
     setError(null);
     if (!stopId) {
-      setId("");
       setOrder("");
       setType("checkpoint");
       setName("");
@@ -76,7 +67,6 @@ export default function SetTripStopDialog({
           setError("Parada no encontrada.");
           return;
         }
-        setId(data.id ?? "");
         setOrder(String(data.order ?? ""));
         setType(data.type ?? "checkpoint");
         setName(data.name ?? "");
@@ -93,11 +83,9 @@ export default function SetTripStopDialog({
 
   const save = async () => {
     if (!name.trim()) return;
-    if (!isEdit && !id.trim()) return;
     setSaving(true);
     setError(null);
     try {
-      const stopIdNorm = id.trim().toLowerCase().replace(/\s+/g, "-");
       const payload = {
         order: Number(order) || 0,
         type,
@@ -112,7 +100,8 @@ export default function SetTripStopDialog({
       if (stopId) {
         await tripService.editTripStop(tripId, stopId, payload);
       } else {
-        await tripService.addTripStop(tripId, { id: stopIdNorm, ...payload });
+        const generatedId = `stop-${Date.now()}`;
+        await tripService.addTripStop(tripId, { id: generatedId, ...payload });
       }
       onSuccess?.();
       onHide();
@@ -123,7 +112,7 @@ export default function SetTripStopDialog({
     }
   };
 
-  const valid = name.trim() && (isEdit || id.trim());
+  const valid = !!name.trim();
 
   return (
     <DpContentSet
@@ -145,9 +134,6 @@ export default function SetTripStopDialog({
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
               {error}
             </div>
-          )}
-          {!isEdit && (
-            <DpInput type="input" label="Id (en la colección)" name="id" value={id} onChange={setId} placeholder="stop01" className="font-mono text-sm" />
           )}
           <DpInput type="number" label="Orden" name="order" value={order} onChange={setOrder} placeholder="1" />
           <DpInput type="select" label="Tipo" name="type" value={type} onChange={(v) => setType(v as TripStopType)} options={TYPE_OPTIONS} />

@@ -53,6 +53,22 @@
           "view",
           "module"
         ]
+      },
+      {
+        "title": "Secuencias",
+        "link": "/system/sequences",
+        "permission": [
+          "view",
+          "sequence"
+        ]
+      },
+      {
+        "title": "Contadores",
+        "link": "/system/counters",
+        "permission": [
+          "view",
+          "counter"
+        ]
       }
     ]
   },
@@ -115,6 +131,14 @@
     "enabled": true,
     "icon": "truck",
     "children": [
+      {
+        "title": "Servicios",
+        "link": "/transport/transport-services",
+        "permission": [
+          "view",
+          "transport-service"
+        ]
+      },
       {
         "title": "Contratos",
         "link": "/transport/transport-contracts",
