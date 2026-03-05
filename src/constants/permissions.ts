@@ -27,3 +27,4 @@ export const MODULE_TRANSPORT_CONTRACT = "transport-contract";
 export const MODULE_TRANSPORT_SERVICE = "transport-service";
 export const MODULE_SEQUENCE = "sequence";
 export const MODULE_COUNTER = "counter";
+export const MODULE_RESOURCE = "resource";

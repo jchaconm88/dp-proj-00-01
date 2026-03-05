@@ -112,6 +112,21 @@
     ]
   },
   {
+    "title": "Recursos humanos",
+    "enabled": true,
+    "icon": "users",
+    "children": [
+      {
+        "title": "Recursos",
+        "link": "/human-resources/resources",
+        "permission": [
+          "view",
+          "resource"
+        ]
+      }
+    ]
+  },
+  {
     "title": "Logística",
     "enabled": true,
     "icon": "stop",
@@ -190,10 +205,43 @@
     ]
   },
   {
-    "title": "Tabs",
+    "title": "Recursos Humanos",
     "enabled": true,
     "icon": "align-left",
-    "link": "#"
+    "children": [
+      {
+        "title": "Empleados",
+        "link": "/human-resources/employees",
+        "permission": [
+          "view",
+          "employee"
+        ]
+      },
+      {
+        "title": "Contratos Laborales",
+        "link": "/human-resources/contracts",
+        "permission": [
+          "view",
+          "contract"
+        ]
+      },
+      {
+        "title": "Cargos",
+        "link": "/human-resources/positions",
+        "permission": [
+          "view",
+          "position"
+        ]
+      },
+      {
+        "title": "Recursos Externos",
+        "link": "/human-resources/resources",
+        "permission": [
+          "view",
+          "resource"
+        ]
+      }
+    ]
   },
   {
     "title": "UI Features",

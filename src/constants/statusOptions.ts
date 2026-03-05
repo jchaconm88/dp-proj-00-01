@@ -125,3 +125,30 @@ export const RESET_PERIOD: Record<string, StatusOption> = {
   monthly: { label: "Mensual", severity: "info" },
   daily: { label: "Diario", severity: "info" },
 };
+
+/** Rol del recurso (HR). */
+export const RESOURCE_ROLE: Record<string, StatusOption> = {
+  driver: { label: "Conductor", severity: "info" },
+};
+
+/** Tipo de vinculación del recurso. */
+export const RESOURCE_ENGAGEMENT_TYPE: Record<string, StatusOption> = {
+  sporadic: { label: "Esporádico", severity: "secondary" },
+  permanent: { label: "Permanente", severity: "info" },
+  contract: { label: "Contrato", severity: "warning" },
+};
+
+/** Estado del recurso. */
+export const RESOURCE_STATUS: Record<string, StatusOption> = {
+  active: { label: "Activo", severity: "success" },
+  inactive: { label: "Inactivo", severity: "secondary" },
+  suspended: { label: "Suspendido", severity: "danger" },
+};
+
+/** Tipo de costo del recurso. */
+export const RESOURCE_COST_TYPE: Record<string, StatusOption> = {
+  per_trip: { label: "Por viaje", severity: "info" },
+  per_hour: { label: "Por hora", severity: "info" },
+  per_day: { label: "Por día", severity: "info" },
+  fixed: { label: "Fijo", severity: "info" },
+};

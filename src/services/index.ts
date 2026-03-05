@@ -13,3 +13,4 @@ export * as tripService from "./tripService";
 export * as orderService from "./orderService";
 export * as sequenceService from "./sequenceService";
 export * as counterService from "./counterService";
+export * as resourceService from "./resourceService";
