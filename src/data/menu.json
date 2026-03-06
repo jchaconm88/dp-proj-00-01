@@ -94,14 +94,6 @@
         ]
       },
       {
-        "title": "Empleados",
-        "link": "/masters/employees",
-        "permission": [
-          "view",
-          "employee"
-        ]
-      },
-      {
         "title": "Clientes",
         "link": "/masters/clients",
         "permission": [
@@ -117,7 +109,31 @@
     "icon": "users",
     "children": [
       {
-        "title": "Recursos",
+        "title": "Empleados",
+        "link": "/human-resources/employees",
+        "permission": [
+          "view",
+          "employee"
+        ]
+      },
+      {
+        "title": "Contratos Laborales",
+        "link": "/human-resources/contracts",
+        "permission": [
+          "view",
+          "contract"
+        ]
+      },
+      {
+        "title": "Cargos",
+        "link": "/human-resources/positions",
+        "permission": [
+          "view",
+          "position"
+        ]
+      },
+      {
+        "title": "Recursos Externos",
         "link": "/human-resources/resources",
         "permission": [
           "view",
@@ -209,38 +225,6 @@
     "enabled": true,
     "icon": "align-left",
     "children": [
-      {
-        "title": "Empleados",
-        "link": "/human-resources/employees",
-        "permission": [
-          "view",
-          "employee"
-        ]
-      },
-      {
-        "title": "Contratos Laborales",
-        "link": "/human-resources/contracts",
-        "permission": [
-          "view",
-          "contract"
-        ]
-      },
-      {
-        "title": "Cargos",
-        "link": "/human-resources/positions",
-        "permission": [
-          "view",
-          "position"
-        ]
-      },
-      {
-        "title": "Recursos Externos",
-        "link": "/human-resources/resources",
-        "permission": [
-          "view",
-          "resource"
-        ]
-      }
     ]
   },
   {

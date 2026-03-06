@@ -9,7 +9,6 @@ import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/Dp
 import { useAccessService } from "@/hooks/useAccessService";
 import {
   MODULE_EMPLOYEE,
-  PERMISSION_VIEW,
   PERMISSION_CREATE,
   PERMISSION_UPDATE,
   PERMISSION_DELETE,
@@ -69,12 +68,12 @@ export default function EmployeesScreen({ refreshTrigger, onRefresh }: Employees
 
   const openAdd = () => {
     if (!requirePermissionOrAlert(PERMISSION_CREATE, MODULE_EMPLOYEE)) return;
-    router.push("/masters/employees/add");
+    router.push("/human-resources/employees/add");
   };
 
   const openEdit = (row: EmployeeRecord) => {
     if (!requirePermissionOrAlert(PERMISSION_UPDATE, MODULE_EMPLOYEE)) return;
-    router.push(`/masters/employees/edit/${encodeURIComponent(row.id)}`);
+    router.push(`/human-resources/employees/edit/${encodeURIComponent(row.id)}`);
   };
 
   const deleteSelected = async () => {

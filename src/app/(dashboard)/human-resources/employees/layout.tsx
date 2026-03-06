@@ -17,8 +17,8 @@ export default function EmployeesLayout({ children }: { children: React.ReactNod
   const { showAlert } = useAlert();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const showAdd = pathname === "/masters/employees/add";
-  const editMatch = pathname.match(/^\/masters\/employees\/edit\/([^/]+)$/);
+  const showAdd = pathname === "/human-resources/employees/add";
+  const editMatch = pathname.match(/^\/human-resources\/employees\/edit\/([^/]+)$/);
   const editId = editMatch ? decodeURIComponent(editMatch[1]) : null;
   const showEditDialog = !!editId;
   const showAddDialog = showAdd;
@@ -26,7 +26,7 @@ export default function EmployeesLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (userLoading) return;
     if (showAddDialog && !isGranted(PERMISSION_CREATE, MODULE_EMPLOYEE)) {
-      router.replace("/masters/employees");
+      router.replace("/human-resources/employees");
       showAlert("error", "No tiene permisos para agregar empleados.");
     }
   }, [userLoading, showAddDialog, isGranted, router, showAlert]);
@@ -34,7 +34,7 @@ export default function EmployeesLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (userLoading) return;
     if (showEditDialog && !isGranted(PERMISSION_UPDATE, MODULE_EMPLOYEE)) {
-      router.replace("/masters/employees");
+      router.replace("/human-resources/employees");
       showAlert("error", "No tiene permisos para editar empleados.");
     }
   }, [userLoading, showEditDialog, isGranted, router, showAlert]);

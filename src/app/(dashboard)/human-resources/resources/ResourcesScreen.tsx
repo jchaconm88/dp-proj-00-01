@@ -111,7 +111,7 @@ export default function ResourcesScreen({ refreshTrigger, onRefresh }: Resources
   };
 
   return (
-    <DpContent title="RECURSOS">
+    <DpContent title="RECURSOS EXTERNOS">
       <DpContentHeader
         filterValue={filterValue}
         onFilter={handleFilter}

@@ -32,7 +32,7 @@ export default function SetEmployeeDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const hide = () => router.push("/masters/employees");
+  const hide = () => router.push("/human-resources/employees");
   const onHide = () => { if (!saving) hide(); };
 
   useEffect(() => {
