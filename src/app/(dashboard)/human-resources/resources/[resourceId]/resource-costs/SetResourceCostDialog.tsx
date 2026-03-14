@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { DpInput } from "@/components/DpInput";
+import { DpCodeInput } from "@/components/DpCodeInput";
 import { DpContentSet } from "@/components/DpContent";
 import * as resourceService from "@/services/resourceService";
+import * as sequenceService from "@/services/sequenceService";
 import type { ResourceCostType } from "@/services/resourceService";
 import { RESOURCE_COST_TYPE, statusToSelectOptions } from "@/constants/statusOptions";
 
@@ -25,7 +27,7 @@ export default function SetResourceCostDialog({
   onHide,
 }: SetResourceCostDialogProps) {
   const isEdit = !!costId;
-  const [id, setId] = useState("");
+  const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [type, setType] = useState<ResourceCostType>("per_trip");
   const [amount, setAmount] = useState("");
@@ -40,7 +42,7 @@ export default function SetResourceCostDialog({
     if (!visible) return;
     setError(null);
     if (!costId) {
-      setId("");
+      setCode("");
       setName("");
       setType("per_trip");
       setAmount("");
@@ -58,7 +60,7 @@ export default function SetResourceCostDialog({
           setError("Costo no encontrado.");
           return;
         }
-        setId(data.id);
+        setCode(data.code ?? "");
         setName(data.name ?? "");
         setType(data.type ?? "per_trip");
         setAmount(String(data.amount ?? ""));
@@ -72,14 +74,26 @@ export default function SetResourceCostDialog({
 
   const save = async () => {
     if (!name.trim()) return;
-    if (!isEdit && !id.trim()) return;
+    if (isEdit && !code.trim()) return;
     setSaving(true);
     setError(null);
     try {
-      const costDocId = isEdit ? costId! : id.trim().toUpperCase().replace(/\s+/g, "_");
+      let finalCode: string;
+      if (isEdit) {
+        finalCode = code.trim();
+      } else {
+        try {
+          finalCode = await sequenceService.resolveCodeIfEmpty(code, "resource-cost");
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Error al generar código.");
+          setSaving(false);
+          return;
+        }
+      }
       const numAmount = Number(amount) || 0;
       if (isEdit) {
         await resourceService.editResourceCost(resourceId, costId!, {
+          code: finalCode,
           name: name.trim(),
           type,
           amount: numAmount,
@@ -89,7 +103,7 @@ export default function SetResourceCostDialog({
         });
       } else {
         await resourceService.addResourceCost(resourceId, {
-          id: costDocId,
+          code: finalCode,
           name: name.trim(),
           type,
           amount: numAmount,
@@ -107,7 +121,7 @@ export default function SetResourceCostDialog({
     }
   };
 
-  const valid = !!name.trim() && (isEdit || !!id.trim());
+  const valid = !!name.trim() && (isEdit ? !!code.trim() : true);
 
   return (
     <DpContentSet
@@ -130,16 +144,7 @@ export default function SetResourceCostDialog({
               {error}
             </div>
           )}
-          {!isEdit && (
-            <DpInput
-              type="input"
-              label="Id"
-              name="id"
-              value={id}
-              onChange={setId}
-              placeholder="TAR_LIM"
-            />
-          )}
+          <DpCodeInput entity="resource-cost" label="Código" name="code" value={code} onChange={setCode} />
           <DpInput
             type="input"
             label="Nombre"

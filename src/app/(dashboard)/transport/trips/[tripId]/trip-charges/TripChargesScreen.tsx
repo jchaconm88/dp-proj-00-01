@@ -2,39 +2,45 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import * as resourceService from "@/services/resourceService";
-import type { ResourceCostRecord, ResourceRecord } from "@/services/resourceService";
+import * as tripChargeService from "@/services/tripChargeService";
+import type { TripChargeRecord } from "@/models/tripCharge";
+import * as tripService from "@/services/tripService";
+import type { TripRecord } from "@/services/tripService";
 import { DpContentInfo, DpContentHeader } from "@/components/DpContent";
 import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
 import { useAccessService } from "@/hooks/useAccessService";
 import {
-  MODULE_RESOURCE,
+  MODULE_TRIP,
   PERMISSION_CREATE,
   PERMISSION_UPDATE,
   PERMISSION_DELETE,
 } from "@/constants/permissions";
-import { RESOURCE_COST_TYPE, CURRENCY } from "@/constants/statusOptions";
-import SetResourceCostDialog from "./SetResourceCostDialog";
+import {
+  TRIP_CHARGE_TYPE,
+  TRIP_CHARGE_SOURCE,
+  TRIP_CHARGE_STATUS,
+  CURRENCY,
+} from "@/constants/statusOptions";
+import SetTripChargeDialog from "./SetTripChargeDialog";
 
 const TABLE_DEF: DpTableDefColumn[] = [
   { header: "Código", column: "code", order: 1, display: true, filter: true },
-  { header: "Nombre", column: "name", order: 2, display: true, filter: true },
-  { header: "Tipo", column: "type", order: 3, display: true, filter: true, type: "status", typeOptions: RESOURCE_COST_TYPE },
+  { header: "Tipo", column: "type", order: 2, display: true, filter: true, type: "status", typeOptions: TRIP_CHARGE_TYPE },
+  { header: "Origen", column: "source", order: 3, display: true, filter: true, type: "status", typeOptions: TRIP_CHARGE_SOURCE },
   { header: "Monto", column: "amount", order: 4, display: true, filter: true },
   { header: "Moneda", column: "currency", order: 5, display: true, filter: true, type: "status", typeOptions: CURRENCY },
-  { header: "Vigente desde", column: "effectiveFrom", order: 6, display: true, filter: true, type: "date" },
-  { header: "Activo", column: "active", order: 7, display: true, filter: true, type: "bool" },
+  { header: "Estado", column: "status", order: 6, display: true, filter: true, type: "status", typeOptions: TRIP_CHARGE_STATUS },
 ];
 
-export interface ResourceCostsScreenProps {
-  resourceId: string;
+export interface TripChargesScreenProps {
+  tripId: string;
 }
 
-export default function ResourceCostsScreen({ resourceId }: ResourceCostsScreenProps) {
+export default function TripChargesScreen({ tripId }: TripChargesScreenProps) {
   const router = useRouter();
   const { requirePermissionOrAlert } = useAccessService();
-  const tableRef = useRef<DpTableRef<ResourceCostRecord>>(null);
-  const [resource, setResource] = useState<ResourceRecord | null>(null);
+  const tableRef = useRef<DpTableRef<TripChargeRecord>>(null);
+  const [trip, setTrip] = useState<TripRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -42,22 +48,22 @@ export default function ResourceCostsScreen({ resourceId }: ResourceCostsScreenP
   const [filterValue, setFilterValue] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showAdd, setShowAdd] = useState(false);
-  const [editCostId, setEditCostId] = useState<string | null>(null);
+  const [editChargeId, setEditChargeId] = useState<string | null>(null);
 
-  const fetchResource = async () => {
-    const r = await resourceService.getResource(resourceId);
-    setResource(r ?? null);
+  const fetchTrip = async () => {
+    const t = await tripService.getTrip(tripId);
+    setTrip(t ?? null);
   };
 
-  const fetchCosts = async () => {
+  const fetchCharges = async () => {
     setLoading(true);
     setError(null);
     tableRef.current?.setLoading(true);
     try {
-      const list = await resourceService.listResourceCosts(resourceId);
+      const list = await tripChargeService.listByTripId(tripId);
       tableRef.current?.setDatasource(list);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cargar costos.");
+      setError(err instanceof Error ? err.message : "Error al cargar cargos.");
       tableRef.current?.clearDatasource();
     } finally {
       setLoading(false);
@@ -66,39 +72,39 @@ export default function ResourceCostsScreen({ resourceId }: ResourceCostsScreenP
   };
 
   useEffect(() => {
-    fetchResource();
-  }, [resourceId]);
+    fetchTrip();
+  }, [tripId]);
 
   useEffect(() => {
-    fetchCosts();
-  }, [resourceId, refreshTrigger]);
+    fetchCharges();
+  }, [tripId, refreshTrigger]);
 
   const handleRefresh = () => {
-    fetchCosts();
-    fetchResource();
+    fetchCharges();
+    fetchTrip();
   };
 
   const openAdd = () => {
-    if (!requirePermissionOrAlert(PERMISSION_CREATE, MODULE_RESOURCE)) return;
+    if (!requirePermissionOrAlert(PERMISSION_CREATE, MODULE_TRIP)) return;
     setShowAdd(true);
-    setEditCostId(null);
+    setEditChargeId(null);
   };
 
-  const openEdit = (row: ResourceCostRecord) => {
-    if (!requirePermissionOrAlert(PERMISSION_UPDATE, MODULE_RESOURCE)) return;
-    setEditCostId(row.id);
+  const openEdit = (row: TripChargeRecord) => {
+    if (!requirePermissionOrAlert(PERMISSION_UPDATE, MODULE_TRIP)) return;
+    setEditChargeId(row.id);
     setShowAdd(false);
   };
 
   const deleteSelected = async () => {
-    if (!requirePermissionOrAlert(PERMISSION_DELETE, MODULE_RESOURCE)) return;
+    if (!requirePermissionOrAlert(PERMISSION_DELETE, MODULE_TRIP)) return;
     const selected = tableRef.current?.getSelectedRows() ?? [];
     if (selected.length === 0) return;
     setSaving(true);
     try {
-      await resourceService.removeManyResourceCosts(resourceId, selected);
+      await tripChargeService.removeMany(selected);
       tableRef.current?.clearSelectedRows();
-      await fetchCosts();
+      await fetchCharges();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al eliminar.");
     } finally {
@@ -111,17 +117,20 @@ export default function ResourceCostsScreen({ resourceId }: ResourceCostsScreenP
     tableRef.current?.filter(value);
   };
 
-  const backToResources = () => router.push("/human-resources/resources");
+  const onDialogSuccess = () => {
+    setRefreshTrigger((k) => k + 1);
+    setShowAdd(false);
+    setEditChargeId(null);
+  };
 
-  const resourceLabel = resource
-    ? `Costos: ${(resource.code || resource.id).trim()} – ${(resource.firstName ?? "").trim()} ${(resource.lastName ?? "").trim()}`.trim()
-    : `Costos del recurso`;
+  const showDialog = showAdd || !!editChargeId;
+  const backToTrips = () => router.push("/transport/trips");
 
   return (
     <DpContentInfo
-      title={resourceLabel}
-      backLabel="Volver a recursos"
-      onBack={backToResources}
+      title={trip ? `Cargos: ${trip.code || trip.id}` : "Cargos del viaje"}
+      backLabel="Volver a viajes"
+      onBack={backToTrips}
     >
       <DpContentHeader
         filterValue={filterValue}
@@ -131,7 +140,7 @@ export default function ResourceCostsScreen({ resourceId }: ResourceCostsScreenP
         onDelete={deleteSelected}
         deleteDisabled={selectedCount === 0 || saving}
         loading={loading}
-        filterPlaceholder="Filtrar por código, nombre..."
+        filterPlaceholder="Filtrar por código, entidad..."
       />
 
       {error && (
@@ -140,7 +149,7 @@ export default function ResourceCostsScreen({ resourceId }: ResourceCostsScreenP
         </div>
       )}
 
-      <DpTable<ResourceCostRecord>
+      <DpTable<TripChargeRecord>
         ref={tableRef}
         tableDef={TABLE_DEF}
         linkColumn="code"
@@ -149,18 +158,18 @@ export default function ResourceCostsScreen({ resourceId }: ResourceCostsScreenP
         onSelectionChange={(rows) => setSelectedCount(rows.length)}
         showFilterInHeader={false}
         filterPlaceholder="Filtrar..."
-        emptyMessage='No hay costos en "resourceCosts".'
+        emptyMessage="No hay cargos para este viaje."
         emptyFilterMessage="No hay resultados para el filtro."
       />
 
-      <SetResourceCostDialog
-        visible={showAdd || !!editCostId}
-        resourceId={resourceId}
-        costId={editCostId}
-        onSuccess={() => setRefreshTrigger((k) => k + 1)}
+      <SetTripChargeDialog
+        visible={showDialog}
+        tripId={tripId}
+        chargeId={editChargeId}
+        onSuccess={onDialogSuccess}
         onHide={() => {
           setShowAdd(false);
-          setEditCostId(null);
+          setEditChargeId(null);
         }}
       />
     </DpContentInfo>

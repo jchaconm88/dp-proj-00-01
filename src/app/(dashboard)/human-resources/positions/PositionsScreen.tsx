@@ -2,40 +2,35 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import * as employeeService from "@/services/employeeService";
-import type { EmployeeRecord } from "@/services/employeeService";
+import * as positionService from "@/services/positionService";
+import type { PositionRecord } from "@/services/positionService";
 import { DpContent, DpContentHeader } from "@/components/DpContent";
 import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
 import { useAccessService } from "@/hooks/useAccessService";
 import {
-  MODULE_EMPLOYEE,
+  MODULE_POSITION,
   PERMISSION_CREATE,
   PERMISSION_UPDATE,
   PERMISSION_DELETE,
 } from "@/constants/permissions";
-import { EMPLOYEE_STATUS } from "@/constants/statusOptions";
 
-export type { EmployeeRecord };
+export type { PositionRecord };
 
 const TABLE_DEF: DpTableDefColumn[] = [
   { header: "Código", column: "code", order: 1, display: true, filter: true },
-  { header: "Nombre", column: "fullName", order: 2, display: true, filter: true },
-  { header: "Nº Doc", column: "documentNo", order: 3, display: true, filter: true },
-  { header: "Cargo", column: "position", order: 4, display: true, filter: true },
-  { header: "F. ingreso", column: "hireDate", order: 5, display: true, filter: true, type: "date" },
-  { header: "Estado", column: "status", order: 6, display: true, filter: true, type: "status", typeOptions: EMPLOYEE_STATUS },
-  { header: "Salario base", column: "salaryDisplay", order: 7, display: true, filter: true },
+  { header: "Nombre", column: "name", order: 2, display: true, filter: true },
+  { header: "Activo", column: "active", order: 3, display: true, filter: true, type: "bool" },
 ];
 
-export interface EmployeesScreenProps {
+export interface PositionsScreenProps {
   refreshTrigger?: number;
   onRefresh?: () => void;
 }
 
-export default function EmployeesScreen({ refreshTrigger, onRefresh }: EmployeesScreenProps) {
+export default function PositionsScreen({ refreshTrigger, onRefresh }: PositionsScreenProps) {
   const router = useRouter();
   const { requirePermissionOrAlert } = useAccessService();
-  const tableRef = useRef<DpTableRef<EmployeeRecord & { fullName?: string; salaryDisplay?: string }>>(null);
+  const tableRef = useRef<DpTableRef<PositionRecord>>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -47,18 +42,10 @@ export default function EmployeesScreen({ refreshTrigger, onRefresh }: Employees
     setError(null);
     tableRef.current?.setLoading(true);
     try {
-      const list = await employeeService.list();
-      tableRef.current?.setDatasource(
-        list.map((e) => ({
-          ...e,
-          fullName: `${(e.firstName ?? "").trim()} ${(e.lastName ?? "").trim()}`.trim() || "—",
-          salaryDisplay: e.payroll
-            ? `${e.payroll.baseSalary} ${e.payroll.currency ?? "PEN"}`
-            : "—",
-        }))
-      );
+      const list = await positionService.list();
+      tableRef.current?.setDatasource(list);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cargar empleados.");
+      setError(err instanceof Error ? err.message : "Error al cargar cargos.");
       tableRef.current?.clearDatasource();
     } finally {
       setLoading(false);
@@ -76,22 +63,22 @@ export default function EmployeesScreen({ refreshTrigger, onRefresh }: Employees
   };
 
   const openAdd = () => {
-    if (!requirePermissionOrAlert(PERMISSION_CREATE, MODULE_EMPLOYEE)) return;
-    router.push("/human-resources/employees/add");
+    if (!requirePermissionOrAlert(PERMISSION_CREATE, MODULE_POSITION)) return;
+    router.push("/human-resources/positions/add");
   };
 
-  const openEdit = (row: EmployeeRecord) => {
-    if (!requirePermissionOrAlert(PERMISSION_UPDATE, MODULE_EMPLOYEE)) return;
-    router.push(`/human-resources/employees/edit/${encodeURIComponent(row.id)}`);
+  const openEdit = (row: PositionRecord) => {
+    if (!requirePermissionOrAlert(PERMISSION_UPDATE, MODULE_POSITION)) return;
+    router.push(`/human-resources/positions/edit/${encodeURIComponent(row.id)}`);
   };
 
   const deleteSelected = async () => {
-    if (!requirePermissionOrAlert(PERMISSION_DELETE, MODULE_EMPLOYEE)) return;
+    if (!requirePermissionOrAlert(PERMISSION_DELETE, MODULE_POSITION)) return;
     const selected = tableRef.current?.getSelectedRows() ?? [];
     if (selected.length === 0) return;
     setSaving(true);
     try {
-      await employeeService.removeMany(selected);
+      await positionService.removeMany(selected);
       tableRef.current?.clearSelectedRows();
       await fetchList();
     } catch (err) {
@@ -107,7 +94,7 @@ export default function EmployeesScreen({ refreshTrigger, onRefresh }: Employees
   };
 
   return (
-    <DpContent title="EMPLEADOS">
+    <DpContent title="CARGOS">
       <DpContentHeader
         filterValue={filterValue}
         onFilter={handleFilter}
@@ -116,7 +103,7 @@ export default function EmployeesScreen({ refreshTrigger, onRefresh }: Employees
         onDelete={deleteSelected}
         deleteDisabled={selectedCount === 0 || saving}
         loading={loading}
-        filterPlaceholder="Filtrar por código, nombre, documento..."
+        filterPlaceholder="Filtrar por código, nombre..."
       />
 
       {error && (
@@ -125,7 +112,7 @@ export default function EmployeesScreen({ refreshTrigger, onRefresh }: Employees
         </div>
       )}
 
-      <DpTable<EmployeeRecord & { fullName?: string; salaryDisplay?: string }>
+      <DpTable<PositionRecord>
         ref={tableRef}
         tableDef={TABLE_DEF}
         linkColumn="code"
@@ -134,7 +121,7 @@ export default function EmployeesScreen({ refreshTrigger, onRefresh }: Employees
         onSelectionChange={(rows) => setSelectedCount(rows.length)}
         showFilterInHeader={false}
         filterPlaceholder="Filtrar..."
-        emptyMessage='No hay empleados en la colección "employees".'
+        emptyMessage='No hay cargos en la colección "positions".'
         emptyFilterMessage="No hay resultados para el filtro."
       />
     </DpContent>

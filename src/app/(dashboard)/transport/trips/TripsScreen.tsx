@@ -28,6 +28,9 @@ const TABLE_DEF: DpTableDefColumn[] = [
   { header: "Estado", column: "status", order: 8, display: true, filter: true, type: "status", typeOptions: TRIP_STATUS },
   { header: "Inicio programado", column: "scheduledStart", order: 9, display: true, filter: true, type: "datetime" },
   { header: "Paradas", column: "tripStops", order: 10, display: true, filter: false },
+  { header: "Asignaciones", column: "tripAssignments", order: 11, display: true, filter: false },
+  { header: "Cargos", column: "tripCharges", order: 12, display: true, filter: false },
+  { header: "Costos", column: "tripCosts", order: 13, display: true, filter: false },
 ];
 
 export interface TripsScreenProps {
@@ -153,6 +156,45 @@ export default function TripsScreen({ refreshTrigger, onRefresh }: TripsScreenPr
               title="Paradas de viaje"
             >
               <i className="pi pi-list" />
+            </button>
+          )}
+        </DpTColumn>
+        <DpTColumn<TripRecord> name="tripAssignments">
+          {(row) => (
+            <button
+              type="button"
+              onClick={() => router.push(`/transport/trips/${encodeURIComponent(row.id)}/trip-assignments`)}
+              className="p-button p-button-text p-button-rounded p-button-icon-only"
+              aria-label="Ver asignaciones del viaje"
+              title="Asignaciones"
+            >
+              <i className="pi pi-users" />
+            </button>
+          )}
+        </DpTColumn>
+        <DpTColumn<TripRecord> name="tripCharges">
+          {(row) => (
+            <button
+              type="button"
+              onClick={() => router.push(`/transport/trips/${encodeURIComponent(row.id)}/trip-charges`)}
+              className="p-button p-button-text p-button-rounded p-button-icon-only"
+              aria-label="Ver cargos del viaje"
+              title="Cargos"
+            >
+              <i className="pi pi-dollar" />
+            </button>
+          )}
+        </DpTColumn>
+        <DpTColumn<TripRecord> name="tripCosts">
+          {(row) => (
+            <button
+              type="button"
+              onClick={() => router.push(`/transport/trips/${encodeURIComponent(row.id)}/trip-costs`)}
+              className="p-button p-button-text p-button-rounded p-button-icon-only"
+              aria-label="Ver costos del viaje"
+              title="Costos"
+            >
+              <i className="pi pi-wallet" />
             </button>
           )}
         </DpTColumn>

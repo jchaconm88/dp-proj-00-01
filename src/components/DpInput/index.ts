@@ -5,6 +5,7 @@ export type {
   DpInputProps,
   DpInputPropsBase,
   DpInputInputProps,
+  DpInputInputDecimalProps,
   DpInputSelectProps,
   DpInputCheckProps,
   DpInputDateProps,

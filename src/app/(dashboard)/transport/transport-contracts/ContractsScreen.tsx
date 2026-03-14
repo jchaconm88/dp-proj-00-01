@@ -13,7 +13,7 @@ import {
   PERMISSION_UPDATE,
   PERMISSION_DELETE,
 } from "@/constants/permissions";
-import { CONTRACT_STATUS, BILLING_CYCLE } from "@/constants/statusOptions";
+import { CONTRACT_STATUS, BILLING_CYCLE, CURRENCY } from "@/constants/statusOptions";
 
 export type { ContractRecord };
 
@@ -21,7 +21,7 @@ const TABLE_DEF: DpTableDefColumn[] = [
   { header: "Código", column: "contractCode", order: 1, display: true, filter: true },
   { header: "Cliente", column: "client", order: 2, display: true, filter: true },
   { header: "Descripción", column: "description", order: 3, display: true, filter: true },
-  { header: "Moneda", column: "currency", order: 4, display: true, filter: true },
+  { header: "Moneda", column: "currency", order: 4, display: true, filter: true, type: "status", typeOptions: CURRENCY },
   { header: "Vigencia", column: "validityStr", order: 5, display: true, filter: true },
   { header: "Facturación", column: "billingCycle", order: 6, display: true, filter: true, type: "status", typeOptions: BILLING_CYCLE },
   { header: "Días pago", column: "paymentTermsDays", order: 7, display: true, filter: true },

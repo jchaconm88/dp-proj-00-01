@@ -48,7 +48,10 @@ export default function TripsLayout({ children }: { children: React.ReactNode })
 
   const isTripStopsPage = pathname.match(/^\/transport\/trips\/[^/]+\/trip-stops$/);
   const isEvidencePage = pathname.match(/^\/transport\/trips\/[^/]+\/trip-stops\/[^/]+\/evidence$/);
-  const showList = !isTripStopsPage && !isEvidencePage;
+  const isTripAssignmentsPage = pathname.match(/^\/transport\/trips\/[^/]+\/trip-assignments/);
+  const isTripChargesPage = pathname.match(/^\/transport\/trips\/[^/]+\/trip-charges/);
+  const isTripCostsPage = pathname.match(/^\/transport\/trips\/[^/]+\/trip-costs/);
+  const showList = !isTripStopsPage && !isEvidencePage && !isTripAssignmentsPage && !isTripChargesPage && !isTripCostsPage;
 
   return (
     <>

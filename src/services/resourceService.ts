@@ -9,7 +9,7 @@ import {
   deleteManyDocuments,
   getSubcollection,
   getDocumentFromSubcollection,
-  setDocumentWithIdInSubcollection,
+  addDocumentToSubcollection,
   updateDocumentInSubcollection,
   deleteDocumentFromSubcollection,
 } from "@/lib/firestoreService";
@@ -17,7 +17,6 @@ import {
 const COLLECTION = "resources";
 const RESOURCE_COSTS_SUB = "resourceCosts";
 
-export type ResourceRole = "driver";
 export type ResourceEngagementType = "sporadic" | "permanent" | "contract";
 export type ResourceStatus = "active" | "inactive" | "suspended";
 
@@ -26,7 +25,13 @@ export interface ResourceRecord {
   code: string;
   firstName: string;
   lastName: string;
-  role: ResourceRole;
+  documentNo: string;
+  documentId: string;
+  phone: string;
+  email: string;
+  positionId: string;
+  position: string;
+  hireDate: string;
   engagementType: ResourceEngagementType;
   status: ResourceStatus;
 }
@@ -35,7 +40,13 @@ export interface ResourceAddInput {
   code: string;
   firstName: string;
   lastName: string;
-  role: ResourceRole;
+  documentNo: string;
+  documentId: string;
+  phone: string;
+  email: string;
+  positionId: string;
+  position: string;
+  hireDate: string;
   engagementType: ResourceEngagementType;
   status: ResourceStatus;
 }
@@ -46,6 +57,7 @@ export type ResourceCostType = "per_trip" | "per_hour" | "per_day" | "fixed";
 
 export interface ResourceCostRecord {
   id: string;
+  code: string;
   name: string;
   type: ResourceCostType;
   amount: number;
@@ -55,7 +67,7 @@ export interface ResourceCostRecord {
 }
 
 export interface ResourceCostAddInput {
-  id: string;
+  code: string;
   name: string;
   type: ResourceCostType;
   amount: number;
@@ -67,8 +79,6 @@ export interface ResourceCostAddInput {
 export type ResourceCostEditInput = Partial<Omit<ResourceCostRecord, "id">>;
 
 function toResourceRecord(doc: { id: string } & Record<string, unknown>): ResourceRecord {
-  const r = (doc.role as string) || "driver";
-  const role: ResourceRole = r === "driver" ? "driver" : "driver";
   const e = (doc.engagementType as string) || "sporadic";
   const engagementType: ResourceEngagementType =
     e === "permanent" || e === "contract" ? e : "sporadic";
@@ -80,7 +90,13 @@ function toResourceRecord(doc: { id: string } & Record<string, unknown>): Resour
     code: String(doc.code ?? ""),
     firstName: String(doc.firstName ?? ""),
     lastName: String(doc.lastName ?? ""),
-    role,
+    documentNo: String(doc.documentNo ?? ""),
+    documentId: String(doc.documentId ?? ""),
+    phone: String(doc.phone ?? doc.phoneNo ?? ""),
+    email: String(doc.email ?? ""),
+    positionId: String(doc.positionId ?? ""),
+    position: String(doc.position ?? ""),
+    hireDate: String(doc.hireDate ?? ""),
     engagementType,
     status,
   };
@@ -92,6 +108,7 @@ function toResourceCostRecord(doc: { id: string } & Record<string, unknown>): Re
     t === "per_hour" || t === "per_day" || t === "fixed" ? t : "per_trip";
   return {
     id: doc.id,
+    code: String(doc.code ?? ""),
     name: String(doc.name ?? ""),
     type,
     amount: Number(doc.amount) ?? 0,
@@ -118,7 +135,13 @@ export async function addResource(data: ResourceAddInput): Promise<string> {
     code: data.code.trim(),
     firstName: data.firstName.trim(),
     lastName: data.lastName.trim(),
-    role: data.role,
+    documentNo: data.documentNo.trim(),
+    documentId: data.documentId.trim(),
+    phone: data.phone.trim(),
+    email: data.email.trim(),
+    positionId: data.positionId.trim(),
+    position: data.position.trim(),
+    hireDate: data.hireDate.trim() || null,
     engagementType: data.engagementType,
     status: data.status,
   });
@@ -129,7 +152,13 @@ export async function editResource(id: string, data: ResourceEditInput): Promise
   if (data.code !== undefined) payload.code = data.code;
   if (data.firstName !== undefined) payload.firstName = data.firstName;
   if (data.lastName !== undefined) payload.lastName = data.lastName;
-  if (data.role !== undefined) payload.role = data.role;
+  if (data.documentNo !== undefined) payload.documentNo = data.documentNo;
+  if (data.documentId !== undefined) payload.documentId = data.documentId;
+  if (data.phone !== undefined) payload.phone = data.phone;
+  if (data.email !== undefined) payload.email = data.email;
+  if (data.positionId !== undefined) payload.positionId = data.positionId;
+  if (data.position !== undefined) payload.position = data.position;
+  if (data.hireDate !== undefined) payload.hireDate = data.hireDate || null;
   if (data.engagementType !== undefined) payload.engagementType = data.engagementType;
   if (data.status !== undefined) payload.status = data.status;
   await updateDocument(COLLECTION, id, payload);
@@ -171,13 +200,12 @@ export async function addResourceCost(
   resourceId: string,
   data: ResourceCostAddInput
 ): Promise<string> {
-  const id = String(data.id ?? "").trim().toUpperCase().replace(/\s+/g, "_") || "COST";
-  await setDocumentWithIdInSubcollection(
+  return addDocumentToSubcollection(
     COLLECTION,
     resourceId,
     RESOURCE_COSTS_SUB,
-    id,
     {
+      code: data.code.trim(),
       name: data.name.trim(),
       type: data.type,
       amount: Number(data.amount) ?? 0,
@@ -186,7 +214,6 @@ export async function addResourceCost(
       active: data.active !== false,
     }
   );
-  return id;
 }
 
 export async function editResourceCost(
@@ -195,6 +222,7 @@ export async function editResourceCost(
   data: ResourceCostEditInput
 ): Promise<void> {
   const payload: Record<string, unknown> = {};
+  if (data.code !== undefined) payload.code = data.code;
   if (data.name !== undefined) payload.name = data.name;
   if (data.type !== undefined) payload.type = data.type;
   if (data.amount !== undefined) payload.amount = Number(data.amount) ?? 0;

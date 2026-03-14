@@ -1,0 +1,123 @@
+---
+description: Reglas para pantallas con listados (DpTable, DpContent) y formularios (DpContentSet, DpInput, DpCodeInput)
+globs: "**/*Screen.tsx,**/Set*.tsx,**/layout.tsx,**/models/**"
+alwaysApply: false
+---
+
+# Formularios y tablas (DP)
+
+## Modelos (tipos e interfaces)
+
+- Las **interfaces** y **tipos** de cada entidad (Record, AddInput, EditInput, tipos de estado, etc.) deben vivir en `src/models/`, en archivos dedicados (ej. `src/models/tripCharge.ts`), y reexportarse desde `src/models/index.ts`.
+- **No mezclar** definiciones de tipos con la lógica de los servicios: los servicios importan desde `@/models/<entidad>` y solo contienen funciones (get, list, add, edit, remove, mappers toRecord, etc.).
+- En pantallas y diálogos, importar tipos desde `@/models/<entidad>` (ej. `import type { TripChargeRecord } from "@/models/tripCharge"`). Los servicios se usan solo para la lógica (llamadas a API/ Firestore).
+- Los tipos derivados de constantes (ej. `keyof typeof TRIP_CHARGE_TYPE`) se definen en el modelo importando las constantes desde `@/constants/statusOptions`.
+
+## Pantallas de listado
+
+- Usar **DpContent** para el contenedor principal con título en mayúsculas (ej. `title="EMPLEADOS"`).
+- Incluir **DpContentHeader** con: `filterValue`, `onFilter`, `onLoad`, `onCreate`, `onDelete`, `deleteDisabled`, `loading`, `filterPlaceholder`.
+- Usar **DpTable** con `ref`, `tableDef` (TABLE_DEF), `linkColumn` (ej. `"code"`), `onDetail`, `onEdit`, `onSelectionChange`, `showFilterInHeader={false}`, `filterPlaceholder`, `emptyMessage`, `emptyFilterMessage`.
+- Definir **TABLE_DEF** como array de `DpTableDefColumn`: `header`, `column`, `order`, `display`, `filter`, y opcionalmente `type: "status" | "bool" | "date" | "datetime"` con `typeOptions` (objeto de constantes, ej. de `@/constants/statusOptions`).
+- Para columnas con botón o contenido custom usar **DpTColumn** con `name` igual a la columna y render prop.
+
+```tsx
+import { DpContent, DpContentHeader } from "@/components/DpContent";
+import { DpTable, type DpTableRef, type DpTableDefColumn } from "@/components/DpTable";
+
+const TABLE_DEF: DpTableDefColumn[] = [
+  { header: "Código", column: "code", order: 1, display: true, filter: true },
+  { header: "Estado", column: "status", order: 2, display: true, filter: true, type: "status", typeOptions: MY_STATUS },
+];
+
+<DpContent title="MÓDULO">
+  <DpContentHeader filterValue={filterValue} onFilter={handleFilter} onLoad={handleRefresh} onCreate={openAdd} onDelete={deleteSelected} deleteDisabled={selectedCount === 0 || saving} loading={loading} filterPlaceholder="Filtrar..." />
+  <DpTable ref={tableRef} tableDef={TABLE_DEF} linkColumn="code" onDetail={openEdit} onEdit={openEdit} onSelectionChange={(rows) => setSelectedCount(rows.length)} showFilterInHeader={false} filterPlaceholder="Filtrar..." emptyMessage="No hay datos." emptyFilterMessage="Sin resultados." />
+</DpContent>
+```
+
+## Formularios (alta/edición)
+
+- Usar **DpContentSet** para el formulario: `title`, `cancelLabel`, `onCancel`, `saveLabel`, `onSave`, `saving`, `saveDisabled`, `visible`, `onHide` (cuando es modal).
+- **onCancel es obligatorio:** DpContentSet siempre exige la prop `onCancel` (para el botón Cancelar). Cuando el formulario se usa como **modal/diálogo**, pasar `onCancel={onHide}` para que Cancelar cierre el diálogo sin guardar (igual que la X o Escape). No omitir `onCancel` aunque exista `onHide`.
+- Para campos **código** (vinculados a secuencia): usar **DpCodeInput** de `@/components/DpCodeInput` con `entity` (ej. `"employee"`), `label`, `name`, `value`, `onChange`. Al guardar, usar `sequenceService.resolveCodeIfEmpty(code, entity)` si el código puede ir vacío en alta.
+- **Validación del código para Guardar:** Si el formulario usa DpCodeInput y en `onSave` se llama a `sequenceService.resolveCodeIfEmpty(code, entity)` (código opcional en alta), la condición `valid` que controla `saveDisabled` **no debe exigir** que `code` esté lleno al crear. Solo en edición el código es obligatorio. Usar: `(isEdit ? !!code.trim() : true) && ...resto de validaciones`. Así el botón Guardar se habilita al completar el resto de campos aunque el código esté vacío en alta, y la secuencia asigna el código al guardar.
+- Para el resto de campos usar **DpInput** de `@/components/DpInput`:
+  - Texto: `type="input"`, `value` string, `onChange`, `placeholder`.
+  - Decimal: `type="input-decimal"`, `value` string, `onChange`, `placeholder`. Control para montos/cantidades; muestra teclado numérico con decimal en móvil (`inputMode="decimal"`). El valor se maneja como string y se convierte a número al guardar (ej. `Number(amount)`).
+  - Número: `type="number"`.
+  - Select: `type="select"`, `value`, `onChange`, `options` (array `{ label, value }`); opciones desde constantes con `statusToSelectOptions(MI_CONSTANTE)` de `@/constants/statusOptions`.
+  - Fecha: `type="date"` (valor string YYYY-MM-DD).
+  - Fecha y hora: `type="datetime"` (string).
+  - Checkbox: `type="check"`, `value` boolean, `onChange`.
+- Siempre `label` y `name` en cada control; para solo lectura o deshabilitado usar `disabled`.
+
+```tsx
+import { DpInput } from "@/components/DpInput";
+import { DpCodeInput } from "@/components/DpCodeInput";
+import { DpContentSet } from "@/components/DpContent";
+import { statusToSelectOptions } from "@/constants/statusOptions";
+
+<DpContentSet title={isEdit ? "Editar" : "Agregar"} cancelLabel="Cancelar" onCancel={onHide} saveLabel="Guardar" onSave={save} saving={saving} saveDisabled={!valid} visible={visible} onHide={onHide}>
+  <DpCodeInput entity="employee" label="Código" name="code" value={code} onChange={setCode} />
+  <DpInput type="input" label="Nombre" name="firstName" value={firstName} onChange={setFirstName} placeholder="Ej. Juan" />
+  <DpInput type="select" label="Estado" name="status" value={status} onChange={(v) => setStatus(v as Status)} options={STATUS_OPTIONS} placeholder="Seleccionar" />
+  <DpInput type="date" label="Fecha" name="hireDate" value={hireDate} onChange={setHireDate} />
+  <DpInput type="check" label="Activo" name="active" value={active} onChange={setActive} />
+</DpContentSet>
+```
+
+## Pantallas con “volver” (subpantallas)
+
+- Usar **DpContentInfo** en lugar de DpContent cuando hay navegación hacia atrás: `title`, `backLabel` (ej. "Volver a viajes"), `onBack`. El header de acciones sigue siendo DpContentHeader.
+
+## Constantes de opciones
+
+- Definir opciones para chips/selects en `src/constants/statusOptions.ts`: objeto `Record<string, StatusOption>` con `label` y `severity` (success|info|warning|danger|secondary).
+- Para select en formulario: `const OPTIONS = statusToSelectOptions(MI_CONSTANTE);`.
+- Para columna tipo status en TABLE_DEF: `type: "status"`, `typeOptions: MI_CONSTANTE`.
+
+## Permisos (add / edit / delete) con useAccessService
+
+- Importar **useAccessService** de `@/hooks/useAccessService` y las constantes **PERMISSION_CREATE**, **PERMISSION_UPDATE**, **PERMISSION_DELETE** y el **MODULE_XXX** del módulo desde `@/constants/permissions`.
+- En pantallas de listado (Screen): usar `const { requirePermissionOrAlert } = useAccessService()`.
+  - **Agregar:** antes de abrir el formulario o navegar a add, comprobar `if (!requirePermissionOrAlert(PERMISSION_CREATE, MODULE_XXX)) return;`. Si no tiene permiso se muestra alerta y no se ejecuta la acción.
+  - **Editar:** antes de abrir edición (por fila), `if (!requirePermissionOrAlert(PERMISSION_UPDATE, MODULE_XXX)) return;`.
+  - **Eliminar:** al inicio de la función de eliminar selección, `if (!requirePermissionOrAlert(PERMISSION_DELETE, MODULE_XXX)) return;`.
+- En **layout** que controla la ruta add/edit y muestra el Set*Dialog:
+  - Usar `const { isGranted } = useAccessService()` y `useUser()` (loading), `useAlert()`, `useRouter()`.
+  - Si la ruta es "add" y el usuario no tiene PERMISSION_CREATE en el módulo: `router.replace` a la lista y `showAlert("error", "No tiene permisos para agregar...")`. Igual para edit con PERMISSION_UPDATE.
+  - Mostrar el diálogo solo cuando `!userLoading && (isGranted(PERMISSION_CREATE, MODULE_XXX) para add o isGranted(PERMISSION_UPDATE, MODULE_XXX) para edit)`.
+- Añadir el **MODULE_XXX** en `permissions.ts` si el módulo es nuevo; debe coincidir con el permiso usado en `menu.json` para esa sección.
+
+```tsx
+// En *Screen.tsx (listado)
+import { useAccessService } from "@/hooks/useAccessService";
+import { MODULE_EMPLOYEE, PERMISSION_CREATE, PERMISSION_UPDATE, PERMISSION_DELETE } from "@/constants/permissions";
+
+const { requirePermissionOrAlert } = useAccessService();
+
+const openAdd = () => {
+  if (!requirePermissionOrAlert(PERMISSION_CREATE, MODULE_EMPLOYEE)) return;
+  router.push("/human-resources/employees/add");
+};
+const openEdit = (row) => {
+  if (!requirePermissionOrAlert(PERMISSION_UPDATE, MODULE_EMPLOYEE)) return;
+  router.push(`/human-resources/employees/edit/${row.id}`);
+};
+const deleteSelected = async () => {
+  if (!requirePermissionOrAlert(PERMISSION_DELETE, MODULE_EMPLOYEE)) return;
+  // ... eliminar
+};
+
+// En layout.tsx (diálogo add/edit por ruta)
+const { isGranted } = useAccessService();
+useEffect(() => {
+  if (userLoading) return;
+  if (showAddDialog && !isGranted(PERMISSION_CREATE, MODULE_EMPLOYEE)) {
+    router.replace("/human-resources/employees");
+    showAlert("error", "No tiene permisos para agregar empleados.");
+  }
+}, [userLoading, showAddDialog, isGranted, router, showAlert]);
+const showDialog = !userLoading && ((showAddDialog && isGranted(PERMISSION_CREATE, MODULE_EMPLOYEE)) || (showEditDialog && isGranted(PERMISSION_UPDATE, MODULE_EMPLOYEE)));
+```

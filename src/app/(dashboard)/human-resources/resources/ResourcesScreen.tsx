@@ -14,7 +14,6 @@ import {
   PERMISSION_DELETE,
 } from "@/constants/permissions";
 import {
-  RESOURCE_ROLE,
   RESOURCE_ENGAGEMENT_TYPE,
   RESOURCE_STATUS,
 } from "@/constants/statusOptions";
@@ -24,10 +23,12 @@ export type { ResourceRecord };
 const TABLE_DEF: DpTableDefColumn[] = [
   { header: "Código", column: "code", order: 1, display: true, filter: true },
   { header: "Nombre", column: "fullName", order: 2, display: true, filter: true },
-  { header: "Rol", column: "role", order: 3, display: true, filter: true, type: "status", typeOptions: RESOURCE_ROLE },
-  { header: "Vinculación", column: "engagementType", order: 4, display: true, filter: true, type: "status", typeOptions: RESOURCE_ENGAGEMENT_TYPE },
-  { header: "Estado", column: "status", order: 5, display: true, filter: true, type: "status", typeOptions: RESOURCE_STATUS },
-  { header: "Costos", column: "costs", order: 6, display: true, filter: false },
+  { header: "Nº Doc", column: "documentNo", order: 3, display: true, filter: true },
+  { header: "Cargo", column: "position", order: 4, display: true, filter: true },
+  { header: "F. ingreso", column: "hireDate", order: 5, display: true, filter: true, type: "date" },
+  { header: "Vinculación", column: "engagementType", order: 6, display: true, filter: true, type: "status", typeOptions: RESOURCE_ENGAGEMENT_TYPE },
+  { header: "Estado", column: "status", order: 7, display: true, filter: true, type: "status", typeOptions: RESOURCE_STATUS },
+  { header: "Costos", column: "costs", order: 8, display: true, filter: false },
 ];
 
 export interface ResourcesScreenProps {

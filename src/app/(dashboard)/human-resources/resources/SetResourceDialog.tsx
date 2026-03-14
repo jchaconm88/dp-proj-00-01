@@ -6,14 +6,11 @@ import { DpInput } from "@/components/DpInput";
 import { DpCodeInput } from "@/components/DpCodeInput";
 import { DpContentSet } from "@/components/DpContent";
 import * as resourceService from "@/services/resourceService";
-import type {
-  ResourceRole,
-  ResourceEngagementType,
-  ResourceStatus,
-} from "@/services/resourceService";
+import type { ResourceEngagementType, ResourceStatus } from "@/services/resourceService";
+import * as positionService from "@/services/positionService";
 import * as sequenceService from "@/services/sequenceService";
+import * as documentService from "@/services/documentService";
 import {
-  RESOURCE_ROLE,
   RESOURCE_ENGAGEMENT_TYPE,
   RESOURCE_STATUS,
   statusToSelectOptions,
@@ -25,7 +22,6 @@ export interface SetResourceDialogProps {
   onSuccess?: () => void;
 }
 
-const ROLE_OPTIONS = statusToSelectOptions(RESOURCE_ROLE);
 const ENGAGEMENT_OPTIONS = statusToSelectOptions(RESOURCE_ENGAGEMENT_TYPE);
 const STATUS_OPTIONS = statusToSelectOptions(RESOURCE_STATUS);
 
@@ -39,7 +35,15 @@ export default function SetResourceDialog({
   const [code, setCode] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<ResourceRole>("driver");
+  const [documentNo, setDocumentNo] = useState("");
+  const [documentId, setDocumentId] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [positionId, setPositionId] = useState("");
+  const [position, setPosition] = useState("");
+  const [positions, setPositions] = useState<{ id: string; name: string }[]>([]);
+  const [hireDate, setHireDate] = useState("");
+  const [documents, setDocuments] = useState<{ id: string; name: string }[]>([]);
   const [engagementType, setEngagementType] = useState<ResourceEngagementType>("sporadic");
   const [status, setStatus] = useState<ResourceStatus>("active");
   const [saving, setSaving] = useState(false);
@@ -54,11 +58,19 @@ export default function SetResourceDialog({
   useEffect(() => {
     if (!visible) return;
     setError(null);
+    documentService.list().then((list) => setDocuments(list)).catch(() => setDocuments([]));
+    positionService.list().then((list) => setPositions(list.map((p) => ({ id: p.id, name: p.name })))).catch(() => setPositions([]));
     if (!resourceId) {
       setCode("");
       setFirstName("");
       setLastName("");
-      setRole("driver");
+      setDocumentNo("");
+      setDocumentId("");
+      setPhone("");
+      setEmail("");
+      setPositionId("");
+      setPosition("");
+      setHireDate("");
       setEngagementType("sporadic");
       setStatus("active");
       setLoading(false);
@@ -75,7 +87,13 @@ export default function SetResourceDialog({
         setCode(data.code ?? "");
         setFirstName(data.firstName ?? "");
         setLastName(data.lastName ?? "");
-        setRole(data.role ?? "driver");
+        setDocumentNo(data.documentNo ?? "");
+        setDocumentId(data.documentId ?? "");
+        setPhone(data.phone ?? "");
+        setEmail(data.email ?? "");
+        setPositionId(data.positionId ?? "");
+        setPosition(data.position ?? "");
+        setHireDate(data.hireDate ?? "");
         setEngagementType(data.engagementType ?? "sporadic");
         setStatus(data.status ?? "active");
       })
@@ -100,7 +118,13 @@ export default function SetResourceDialog({
         code: finalCode,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        role,
+        documentNo: documentNo.trim(),
+        documentId: documentId.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        positionId: positionId.trim(),
+        position: position.trim(),
+        hireDate: hireDate.trim(),
         engagementType,
         status,
       };
@@ -118,6 +142,14 @@ export default function SetResourceDialog({
     }
   };
 
+  const documentOptions = documents.map((d) => ({ label: `${d.name} (${d.id})`, value: d.id }));
+  const positionOptions = positions.map((p) => ({ label: p.name, value: p.id }));
+  const onPositionChange = (v: string | number | boolean | null) => {
+    const id = v != null ? String(v) : "";
+    setPositionId(id);
+    const found = positions.find((p) => p.id === id);
+    setPosition(found ? found.name : "");
+  };
   const valid = !!firstName.trim() && !!lastName.trim();
 
   return (
@@ -144,14 +176,28 @@ export default function SetResourceDialog({
           <DpCodeInput entity="resource" label="Código" name="code" value={code} onChange={setCode} />
           <DpInput type="input" label="Nombre" name="firstName" value={firstName} onChange={setFirstName} placeholder="Miguel" />
           <DpInput type="input" label="Apellidos" name="lastName" value={lastName} onChange={setLastName} placeholder="Torres" />
+          <DpInput type="input" label="Nº documento" name="documentNo" value={documentNo} onChange={setDocumentNo} placeholder="12345678" />
           <DpInput
             type="select"
-            label="Rol"
-            name="role"
-            value={role}
-            onChange={(v) => setRole(v as ResourceRole)}
-            options={ROLE_OPTIONS}
+            label="Tipo de documento"
+            name="documentId"
+            value={documentId}
+            onChange={(v) => setDocumentId(v != null ? String(v) : "")}
+            options={documentOptions}
+            placeholder="Seleccionar"
           />
+          <DpInput type="input" label="Teléfono" name="phone" value={phone} onChange={setPhone} placeholder="999999999" />
+          <DpInput type="input" label="Email" name="email" value={email} onChange={setEmail} placeholder="juan@empresa.com" />
+          <DpInput
+            type="select"
+            label="Cargo"
+            name="position"
+            value={positionId}
+            onChange={(v) => onPositionChange(v)}
+            options={positionOptions}
+            placeholder="Seleccionar cargo"
+          />
+          <DpInput type="date" label="Fecha de ingreso" name="hireDate" value={hireDate} onChange={setHireDate} />
           <DpInput
             type="select"
             label="Tipo de vinculación"

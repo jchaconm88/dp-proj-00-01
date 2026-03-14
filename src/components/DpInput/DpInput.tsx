@@ -45,6 +45,7 @@ const controlClass = "w-full";
 
 export type DpInputType =
   | "input"
+  | "input-decimal"
   | "number"
   | "select"
   | "check"
@@ -78,6 +79,14 @@ export interface DpInputInputProps extends DpInputPropsBase {
   inputType?: "text" | "password";
   /** Para type="textarea": número de filas */
   rows?: number;
+}
+
+/** Input para números decimales: teclado numérico con coma/punto, valor como string. */
+export interface DpInputInputDecimalProps extends DpInputPropsBase {
+  type: "input-decimal";
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
 }
 
 export interface DpInputDateProps extends DpInputPropsBase {
@@ -117,6 +126,7 @@ export interface DpInputCheckProps extends DpInputPropsBase {
 
 export type DpInputProps =
   | DpInputInputProps
+  | DpInputInputDecimalProps
   | DpInputSelectProps
   | DpInputCheckProps
   | DpInputDateProps
@@ -223,6 +233,28 @@ export default function DpInput(props: DpInputProps) {
         <label htmlFor={id} className={labelClass}>
           {label}
         </label>
+      </div>
+    );
+  }
+
+  if (props.type === "input-decimal") {
+    const { value, onChange, placeholder } = props;
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value);
+    return (
+      <div className={`${wrapperClass} ${className}`.trim()}>
+        <label htmlFor={id} className={labelClass}>
+          {label}
+        </label>
+        <InputText
+          id={id}
+          value={value}
+          onChange={handleChange}
+          type="text"
+          inputMode="decimal"
+          placeholder={placeholder}
+          disabled={disabled}
+          className={controlClass}
+        />
       </div>
     );
   }

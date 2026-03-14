@@ -84,6 +84,77 @@ export const DRIVER_STATUS: Record<string, StatusOption> = {
   assigned: { label: "Asignado", severity: "warning" },
 };
 
+// —— Asignaciones de viaje (trip-assignments) ——
+/** Tipo de entidad en una asignación (empleado o recurso). */
+export const TRIP_ASSIGNMENT_ENTITY_TYPE: Record<string, StatusOption> = {
+  employee: { label: "Empleado", severity: "info" },
+  resource: { label: "Recurso", severity: "warning" },
+};
+
+// —— Cargos de viaje (trip-charges) ——
+/** Entidad a la que se cobra (cliente, etc.). */
+export const TRIP_CHARGE_ENTITY: Record<string, StatusOption> = {
+  customer: { label: "Cliente", severity: "info" },
+};
+
+/** Tipo de cargo (freight, etc.). */
+export const TRIP_CHARGE_TYPE: Record<string, StatusOption> = {
+  freight: { label: "Flete", severity: "info" },
+  extra_waiting_time: { label: "Tiempo de Espera Extra", severity: "secondary" },
+  extra_distance: { label: "Distancia Recorrida Extra", severity: "warning" },
+  extra_weight: { label: "Peso Cargado Extra", severity: "success" },
+  extra_volume: { label: "Volumen Cargado Extra", severity: "danger" },
+};
+
+/** Origen del cargo (contrato, manual, etc.). */
+export const TRIP_CHARGE_SOURCE: Record<string, StatusOption> = {
+  contract: { label: "Contrato", severity: "info" },
+  manual: { label: "Manual", severity: "secondary" },
+};
+
+/** Estado del cargo. */
+export const TRIP_CHARGE_STATUS: Record<string, StatusOption> = {
+  open: { label: "Abierto", severity: "warning" },
+  paid: { label: "Pagado", severity: "success" },
+  cancelled: { label: "Anulado", severity: "danger" },
+};
+
+// —— Costos de viaje (trip-costs) ——
+/** Entidad del costo (conductor, etc.). */
+export const TRIP_COST_ENTITY: Record<string, StatusOption> = {
+  assignment: { label: "Asignación", severity: "info" },
+  company: { label: "Empresa", severity: "info" },
+};
+
+/** Tipo de costo. */
+export const TRIP_COST_TYPE: Record<string, StatusOption> = {
+  driver_payment: { label: "Pago a conductor", severity: "info" },
+  fuel_expense: { label: "Gasto de combustible", severity: "warning" },
+  toll_expense: { label: "Gasto de peaje", severity: "success" },
+  parking_expense: { label: "Gasto de estacionamiento", severity: "danger" },
+  other_expense: { label: "Otro gasto", severity: "secondary" },
+};
+
+/** Origen del costo. */
+export const TRIP_COST_SOURCE: Record<string, StatusOption> = {
+  salary_rule: { label: "Regla salarial", severity: "info" },
+  manual: { label: "Manual", severity: "secondary" },
+};
+
+/** Estado del costo. */
+export const TRIP_COST_STATUS: Record<string, StatusOption> = {
+  open: { label: "Abierto", severity: "warning" },
+  paid: { label: "Pagado", severity: "success" },
+  cancelled: { label: "Anulado", severity: "danger" },
+};
+
+// —— Monedas (uso en cargos, tarifas, etc.) ——
+export const CURRENCY: Record<string, StatusOption> = {
+  PEN: { label: "Soles (PEN)", severity: "info" },
+  USD: { label: "Dólares (USD)", severity: "info" },
+  EUR: { label: "Euros (EUR)", severity: "info" },
+};
+
 // —— Paradas de viaje (trip-stops) ——
 export const TRIP_STOP_STATUS: Record<string, StatusOption> = {
   pending: { label: "Pendiente", severity: "info" },
@@ -151,4 +222,27 @@ export const RESOURCE_COST_TYPE: Record<string, StatusOption> = {
   per_hour: { label: "Por hora", severity: "info" },
   per_day: { label: "Por día", severity: "info" },
   fixed: { label: "Fijo", severity: "info" },
+};
+
+/** Cargo del empleado. */
+export const EMPLOYEE_POSITION: Record<string, StatusOption> = {
+  driver: { label: "Conductor", severity: "info" },
+  analyst: { label: "Analista", severity: "info" },
+  coordinator: { label: "Coordinador", severity: "info" },
+  manager: { label: "Gerente", severity: "warning" },
+  assistant: { label: "Asistente", severity: "secondary" },
+};
+
+/** Estado del empleado. */
+export const EMPLOYEE_STATUS: Record<string, StatusOption> = {
+  active: { label: "Activo", severity: "success" },
+  inactive: { label: "Inactivo", severity: "secondary" },
+  suspended: { label: "Suspendido", severity: "danger" },
+};
+
+/** Tipo de salario (nómina). */
+export const SALARY_TYPE: Record<string, StatusOption> = {
+  monthly: { label: "Mensual", severity: "info" },
+  weekly: { label: "Semanal", severity: "info" },
+  daily: { label: "Diario", severity: "info" },
 };

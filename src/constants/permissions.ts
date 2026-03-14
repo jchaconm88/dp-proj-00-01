@@ -28,3 +28,4 @@ export const MODULE_TRANSPORT_SERVICE = "transport-service";
 export const MODULE_SEQUENCE = "sequence";
 export const MODULE_COUNTER = "counter";
 export const MODULE_RESOURCE = "resource";
+export const MODULE_POSITION = "position";
